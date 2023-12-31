@@ -1,7 +1,13 @@
 #pragma once
 #include <string>
-struct NesFile
+class NesFile
 {
+public:
+	NesFile(std::string path);
+	uint8_t readByte(uint16_t addr);
+private:
+	uint16_t readMirror000(uint16_t addr);
+private:
 	unsigned char PGR_ROM_size;
 	unsigned char CHR_ROM_size;
 	char Flags6;
@@ -10,9 +16,9 @@ struct NesFile
 	char Flags9;
 	char Flags10;
 	char Mapper;
-	char* PGR_ROM;
-	char* CHR_ROM;
+	uint8_t* PGR_ROM;
+	uint8_t* CHR_ROM;
 	char* Trainer;
+	uint16_t(NesFile::* mapper)(uint16_t addr);
 };
 
-NesFile* readNESFile(std::string path);

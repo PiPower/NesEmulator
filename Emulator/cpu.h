@@ -8,9 +8,10 @@ public:
 	CPU(NesFile* file);
 	void clock();
 private:
-	uint8_t fetchByte();
+	uint8_t readByte(uint16_t addr);
 private:
-	void jumpToNewLocationSavingReturnAddress(void*);
+	void JSR(void* data);
+	void SEI(void* data);
 private:
 	// registers
 	uint16_t ip;
@@ -18,7 +19,7 @@ private:
 	char x_reg;
 	char y_reg;
 	char status_reg;
-	char* stack_ptr;
+	uint16_t stack_ptr;
 	FLAGS flags_reg;
 	// device 
 	uint8_t* RAM;
