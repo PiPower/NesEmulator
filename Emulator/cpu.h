@@ -25,5 +25,6 @@ private:
 	uint8_t* RAM;
 	NesFile* cartridge;
 	static TableEntry instructionTable[0x0F][0x0F];
+	uint16_t cycles;
 };
 

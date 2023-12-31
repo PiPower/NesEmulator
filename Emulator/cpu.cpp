@@ -36,10 +36,17 @@ CPU::CPU(NesFile* file)
 	x_reg = 0;
 	y_reg = 0;
 	flags_reg.flagByte = 0;
+	cycles = 8;
 }
 
 void CPU::clock()
 {
+	if(cycles > 0 )
+	{ 
+		cycles--;
+		return;
+	}
+
 	uint8_t instruction_code = readByte(ip);
 	uint8_t highNibble= instruction_code >> 4;
 	uint8_t lowNibble = instruction_code & 0b00001111;
@@ -65,9 +72,11 @@ void CPU::JSR(void* data)
 	uint8_t lo = 255;
 	uint8_t hi = 255;
 	uint16_t  addr_abs = (hi << 8) | lo;
+	cycles += 6;
 }
 
 void CPU::SEI(void* data)
 {
 	flags_reg.FLAGS.interrupt = 1;
+	cycles += 2;
 }
