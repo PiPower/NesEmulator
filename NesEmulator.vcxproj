@@ -127,10 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Emulator\cpu.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NesFile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Emulator\cpu.h" />
+    <ClInclude Include="Emulator\includes.h" />
     <ClInclude Include="NesFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

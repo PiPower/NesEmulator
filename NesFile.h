@@ -1,15 +1,7 @@
 #pragma once
 #include <string>
-class NesFile
+struct NesFile
 {
-public:
-	NesFile(char* filePath);
-	NesFile(std::string filePath);
-	char GetMirroring();
-	char GetBatteryBacked();
-	char GetTrainer();
-	char GetIgnore();
-private:
 	unsigned char PGR_ROM_size;
 	unsigned char CHR_ROM_size;
 	char Flags6;
@@ -23,3 +15,4 @@ private:
 	char* Trainer;
 };
 
+NesFile* readNESFile(std::string path);
