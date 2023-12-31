@@ -35,7 +35,7 @@ CPU::CPU(NesFile* file)
 	accumulator = 0;
 	x_reg = 0;
 	y_reg = 0;
-	flags_reg.flagByte = 0;
+	status_reg.flagByte = 0;
 	cycles = 8;
 }
 
@@ -61,6 +61,7 @@ void CPU::clock()
 	}
 
 	(this->*(instructionEntry.translator))(loaded_addr);
+	status_reg.FLAGS.ignored = 1;
 	cycles += instructionEntry.cycles;
 	
 }
@@ -107,19 +108,21 @@ void CPU::JSR(void* data)
 
 void CPU::SEI(void* data)
 {
-	flags_reg.FLAGS.interrupt = 1;
+	status_reg.FLAGS.interrupt = 1;
 }
 
 void CPU::CLD(void* data)
 {
-	flags_reg.FLAGS.decimal = 0;
+	status_reg.FLAGS.decimal = 0;
 }
 
 void CPU::LDX(void* data)
 {
 	x_reg = *(uint8_t*)data;
-	flags_reg.FLAGS.zero = 1;
-	flags_reg.FLAGS.negative = 1;
+	if(x_reg == 0 )   status_reg.FLAGS.zero = 1;
+	else status_reg.FLAGS.zero = 0;
+	if (x_reg & 0x80  ) status_reg.FLAGS.negative = 1;
+	else status_reg.FLAGS.negative = 0;
 }
 
 void CPU::TXS(void* data)
@@ -130,13 +133,17 @@ void CPU::TXS(void* data)
 void CPU::LDA(void* data)
 {
 	accumulator = *(uint8_t*)data;
-	flags_reg.FLAGS.zero = 1;
-	flags_reg.FLAGS.negative = 1;
+	if (accumulator == 0)   status_reg.FLAGS.zero = 1;
+	else status_reg.FLAGS.zero = 0;
+	if (accumulator & 0x80) status_reg.FLAGS.negative = 1;
+	else status_reg.FLAGS.negative = 0;
 }
 
 void CPU::LDY(void* data)
 {
 	y_reg = *(uint8_t*)data;
-	flags_reg.FLAGS.zero = 1;
-	flags_reg.FLAGS.negative = 1;
+	if (y_reg == 0)   status_reg.FLAGS.zero = 1;
+	else status_reg.FLAGS.negative = 0;
+	if (y_reg & 0x80) status_reg.FLAGS.negative = 1;
+	else status_reg.FLAGS.negative = 0;
 }

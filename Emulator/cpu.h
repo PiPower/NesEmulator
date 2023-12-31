@@ -27,9 +27,8 @@ private:
 	uint8_t accumulator;
 	uint8_t x_reg;
 	uint8_t y_reg;
-	char status_reg;
 	uint8_t stack_ptr;
-	FLAGS flags_reg;
+	FLAGS status_reg;
 	// device 
 	uint8_t* RAM;
 	NesFile* cartridge;
