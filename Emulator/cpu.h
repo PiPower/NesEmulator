@@ -10,6 +10,8 @@ public:
 private:
 	uint8_t fetchByte();
 private:
+	void jumpToNewLocationSavingReturnAddress(void*);
+private:
 	// registers
 	uint16_t ip;
 	char accumulator;
@@ -21,5 +23,6 @@ private:
 	// device 
 	uint8_t* RAM;
 	NesFile* cartridge;
+	static TableEntry instructionTable[0x0F][0x0F];
 };
 

@@ -20,12 +20,13 @@ union FLAGS
 	unsigned  char flagByte;
 };
 
+class CPU;
 struct TableEntry
 {
 	// translates given instruction
-	void (*translator)(void* data);
+	void (CPU::* translator)(void* data);
 	//translates given addres to required one by instruction
-	uint16_t(*mapper)(void* data);
+	uint16_t (CPU::* mapper)(void* data);
 };
 
 extern TableEntry instructionTable[0x0F][0x0F];
