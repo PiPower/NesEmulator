@@ -26,7 +26,8 @@ struct TableEntry
 	// translates given instruction
 	void (CPU::* translator)(void* data);
 	//translates given addres to required one by instruction
-	uint16_t (CPU::* mapper)(void* data);
+	uint8_t (CPU::* memoryLoader)(void* data);
+	uint8_t cycles;
 };
 
 extern TableEntry instructionTable[0x0F][0x0F];

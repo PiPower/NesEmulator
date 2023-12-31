@@ -10,16 +10,25 @@ public:
 private:
 	uint8_t readByte(uint16_t addr);
 private:
+	// memory loading
+	uint8_t IMM(void* data);
+	uint8_t ABS(void* data);
+	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);
+	void CLD(void* data);
+	void LDX(void* data);
+	void TXS(void* data);
+	void LDA(void* data);
+	void LDY(void* data);
 private:
 	// registers
 	uint16_t ip;
-	char accumulator;
-	char x_reg;
-	char y_reg;
+	uint8_t accumulator;
+	uint8_t x_reg;
+	uint8_t y_reg;
 	char status_reg;
-	uint16_t stack_ptr;
+	uint8_t stack_ptr;
 	FLAGS flags_reg;
 	// device 
 	uint8_t* RAM;
