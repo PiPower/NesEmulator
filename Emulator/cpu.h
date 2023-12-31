@@ -1,12 +1,14 @@
 #pragma once
-#include "inttypes.h"
 #include "includes.h"
-#include 
+#include "../NesFile.h"
+
 class CPU
 {
 public:
-	CPU();
-
+	CPU(NesFile* file);
+	void clock();
+private:
+	uint8_t fetchByte();
 private:
 	// registers
 	uint16_t ip;
@@ -17,6 +19,7 @@ private:
 	char* stack_ptr;
 	FLAGS flags_reg;
 	// device 
-	char* RAM;
+	uint8_t* RAM;
+	NesFile* cartridge;
 };
 

@@ -9,5 +9,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 {
 	string filename = lpCmdLine;
 	NesFile* game = readNESFile(filename);
-	CPU nesCPU();
+	CPU emulator(game);
+	while (true)
+	{
+		emulator.clock();
+	}
 }

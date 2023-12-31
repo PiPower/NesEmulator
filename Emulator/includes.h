@@ -1,4 +1,5 @@
 #pragma once
+#include "inttypes.h"
 
 typedef unsigned char bit; 
 struct FlagBits
@@ -18,3 +19,13 @@ union FLAGS
 	FlagBits FLAGS;
 	unsigned  char flagByte;
 };
+
+struct TableEntry
+{
+	// translates given instruction
+	void (*translator)(void* data);
+	//translates given addres to required one by instruction
+	uint16_t(*mapper)(void* data);
+};
+
+extern TableEntry instructionTable[0x0F][0x0F];
