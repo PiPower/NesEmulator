@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Emulator\cpu.cpp" />
+    <ClCompile Include="Emulator\ppu.cpp" />
     <ClCompile Include="WindowsGraphics\DeviceResources.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NesFile.cpp" />
@@ -135,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Emulator\cpu.h" />
+    <ClInclude Include="Emulator\ppu.h" />
     <ClInclude Include="WindowsGraphics\d3dx12.h" />
     <ClInclude Include="WindowsGraphics\DeviceResources.h" />
     <ClInclude Include="Emulator\includes.h" />
