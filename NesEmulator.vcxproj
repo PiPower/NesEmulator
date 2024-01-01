@@ -128,13 +128,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Emulator\cpu.cpp" />
+    <ClCompile Include="WindowsGraphics\DeviceResources.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NesFile.cpp" />
+    <ClCompile Include="WindowsGraphics\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Emulator\cpu.h" />
+    <ClInclude Include="WindowsGraphics\d3dx12.h" />
+    <ClInclude Include="WindowsGraphics\DeviceResources.h" />
     <ClInclude Include="Emulator\includes.h" />
     <ClInclude Include="NesFile.h" />
+    <ClInclude Include="WindowsGraphics\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

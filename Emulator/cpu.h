@@ -21,6 +21,7 @@ private:
 	void TXS(void* data);
 	void LDA(void* data);
 	void LDY(void* data);
+	void BPL(void* data);
 private:
 	// registers
 	uint16_t ip;
