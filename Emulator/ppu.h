@@ -1,16 +1,18 @@
 #pragma once
 #include "../WindowsGraphics/DeviceResources.h"
 #include "includes.h"
+#include "../NesFile.h"
 class PPU : public DeviceResources
 {
 public:
-	PPU(HWND hwnd);
+	PPU(HWND hwnd, NesFile* cartridge);
 	uint8_t readStatus();
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 	void clock();
 	void reset();
 private:
+	uint8_t readByte(uint16_t addr);
 	void initRenderingResources(HWND hwnd);
 	void initResourceTransitionTable();
 	void visibleScanline();
@@ -23,6 +25,9 @@ private:
 	// internal data
 	UINT scanline;
 	UINT cycle;
+	uint8_t* nametableRAM;
+	uint8_t* palleteRAM;
+	NesFile* cartridge;
 	// DirectX stuff
 	D3D12_RESOURCE_BARRIER transitionTable[8];
 	ComPtr<ID3D12Resource> ScreenTexture;

@@ -1,11 +1,13 @@
 #include "ppu.h"
 #include "../WindowsGraphics/d3dx12.h"
 
-PPU::PPU(HWND hwnd)
-	:DeviceResources(hwnd)
+PPU::PPU(HWND hwnd, NesFile* cartridge)
+	:DeviceResources(hwnd), cartridge(cartridge)
 {
 	initRenderingResources(hwnd);
 	reset();
+	nametableRAM = new uint8_t[1024 * 2];
+	palleteRAM = new uint8_t[0x1F];
 }
 
 uint8_t PPU::readStatus()
@@ -55,7 +57,7 @@ void PPU::writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
 
 void PPU::clock()
 {
-	if (scanline = 0)
+	if (scanline == 0)
 	{
 		status_reg.status.vblank = 0;
 	}
@@ -68,6 +70,7 @@ void PPU::clock()
 
 	if (scanline >= 0 && scanline <= 239)
 	{
+		if(cycle < 256 )writePixel(cycle, scanline, 144, 255, 34, 255);
 		visibleScanline();
 	}
 
@@ -85,6 +88,13 @@ void PPU::clock()
 	{
 		preRenderScanline();
 	}
+	cycle++;
+	if (scanline == 261 && cycle == 341)
+	{
+		cycle = 0; 
+		scanline = 0;
+		render();
+	}
 }
 
 void PPU::reset()
@@ -95,6 +105,22 @@ void PPU::reset()
 	status_reg.statusByte = 0;
 	status_reg.status.vblank = 1;
 	status_reg.status.sprite_0_hit = 1;
+}
+
+uint8_t PPU::readByte(uint16_t addr)
+{
+	if (addr >= 0x0000 && addr <= 0x1FFF)
+	{
+		return cartridge->readBytePPU(addr);
+	}
+	if (addr >= 0x2000 && addr <= 0x3EFF)
+	{
+
+	}
+	if (addr >= 0x3F00 && addr <= 0x3FFF)
+	{
+
+	}
 }
 
 void PPU::initRenderingResources(HWND hwnd)
@@ -163,6 +189,10 @@ void PPU::postRenderScanline()
 
 void PPU::vblankScanline()
 {
+	if (scanline == 241 && cycle == 0)
+	{
+		status_reg.status.vblank = 1;
+	}
 }
 
 void PPU::preRenderScanline()

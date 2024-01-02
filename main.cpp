@@ -12,21 +12,29 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 
 	string filename = lpCmdLine;
 	NesFile game(filename);
-	PPU ppu_emulator(window.GetWindowHWND());
+	PPU ppu_emulator(window.GetWindowHWND(), &game);
 	CPU cpu_emulator(&game, &ppu_emulator);
 
-	char ppu_clocks = 0;
-	while (window.ProcessMessages() == 0)
+	UINT ticks = 0;
+	bool run_app = true;
+	while (run_app)
 	{
 		ppu_emulator.clock();
 
-		if ((ppu_clocks + 1) % 3 == 0)
+		if ((ticks + 1) % 3 == 0)
 		{
-			ppu_clocks = 0;
 			cpu_emulator.clock();
 		}
 
-		ppu_emulator.render();
-		ppu_clocks++;
+
+
+		// for performance reasons perform window related events every n iterations of main loop
+		if ((ticks +1)%(3 * 100 * 200) == 0 )
+		{
+			ticks = 0;
+			run_app = window.ProcessMessages() == 0;
+		}
+
+		ticks++;
 	}
 }

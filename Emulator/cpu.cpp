@@ -91,7 +91,7 @@ uint8_t CPU::readByte(uint16_t addr)
 	}
 	else if (addr >= 0x8000 && addr <= 0xFFFF)
 	{
-		uint8_t byte = cartridge->readByte(addr);
+		uint8_t byte = cartridge->readByteCPU(addr);
 		return byte;
 	}
 
