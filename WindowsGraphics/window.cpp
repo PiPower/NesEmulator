@@ -22,7 +22,7 @@ Window::Window(int width, int height, std::wstring CLassName, std::wstring WndNa
 
 	RegisterClassEx(&wc);
 
-	DWORD style = WS_BORDER | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_SIZEBOX;
+	DWORD style = WS_BORDER | WS_CAPTION | WS_SYSMENU;
 
 	RECT wr;
 	wr.left = 100;

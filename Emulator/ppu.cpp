@@ -1,31 +1,18 @@
 #include "ppu.h"
 #include "../WindowsGraphics/d3dx12.h"
+
 PPU::PPU(HWND hwnd)
 	:DeviceResources(hwnd)
 {
-	D3D12_RESOURCE_DESC screen_texture_desc = renderTargets[0]->GetDesc();
-	if (screen_texture_desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM)
-	{
-		MessageBox(hwnd, L"Incorrect back buffer format", NULL, MB_OK);
-		exit(-1);
-	}
-	CreateTexture2D(&ScreenTexture, screen_texture_desc.Width, screen_texture_desc.Height, 
-		screen_texture_desc.MipLevels, D3D12_RESOURCE_FLAG_NONE, screen_texture_desc.Format);
+	initRenderingResources(hwnd);
+	reset();
+}
 
-	Device->GetCopyableFootprints(&screen_texture_desc, 0, 1, 0, &bufferLocation.PlacedFootprint, nullptr, nullptr, &bufferSize);
-	CreateUploadBuffer(&ScreenTextureUploadBuffer, bufferSize);
-	D3D12_RANGE readRange{ 0,0 };
-	ScreenTextureUploadBuffer->Map(0, &readRange, (void**)&mappedResource);
-
-	textureLocation.pResource = ScreenTexture.Get();
-	textureLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	textureLocation.SubresourceIndex = 0;
-
-	bufferLocation.pResource = ScreenTextureUploadBuffer.Get();
-	bufferLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-
-	cpuScreenBufferData = new UCHAR[bufferSize];
-	InitResourceTransitionTable();
+uint8_t PPU::readStatus()
+{
+	uint8_t statusBuffer = status_reg.statusByte;
+	status_reg.status.vblank = 0;
+	return statusBuffer;
 }
 
 void PPU::render()
@@ -64,10 +51,82 @@ void PPU::writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
 	cpuScreenBufferData[pixelIndex + 1] = G;
 	cpuScreenBufferData[pixelIndex + 2] = B;
 	cpuScreenBufferData[pixelIndex + 3] = A;
-
 }
 
-void PPU::InitResourceTransitionTable()
+void PPU::clock()
+{
+	if (scanline = 0)
+	{
+		status_reg.status.vblank = 0;
+	}
+
+	if (cycle > 340)
+	{
+		cycle = 0;
+		scanline++;
+	}
+
+	if (scanline >= 0 && scanline <= 239)
+	{
+		visibleScanline();
+	}
+
+	if (scanline == 240)
+	{
+		postRenderScanline();
+	}
+
+	if (scanline >= 241 && scanline <= 260)
+	{
+		vblankScanline();
+	}
+
+	if (scanline == 261)
+	{
+		preRenderScanline();
+	}
+}
+
+void PPU::reset()
+{
+	scanline = 0;
+	cycle = 0;
+
+	status_reg.statusByte = 0;
+	status_reg.status.vblank = 1;
+	status_reg.status.sprite_0_hit = 1;
+}
+
+void PPU::initRenderingResources(HWND hwnd)
+{
+	D3D12_RESOURCE_DESC screen_texture_desc = renderTargets[0]->GetDesc();
+	if (screen_texture_desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM)
+	{
+		MessageBox(hwnd, L"Incorrect back buffer format", NULL, MB_OK);
+		exit(-1);
+	}
+	CreateTexture2D(&ScreenTexture, screen_texture_desc.Width, screen_texture_desc.Height,
+		screen_texture_desc.MipLevels, D3D12_RESOURCE_FLAG_NONE, screen_texture_desc.Format);
+
+	Device->GetCopyableFootprints(&screen_texture_desc, 0, 1, 0, &bufferLocation.PlacedFootprint, nullptr, nullptr, &bufferSize);
+	CreateUploadBuffer(&ScreenTextureUploadBuffer, bufferSize);
+	D3D12_RANGE readRange{ 0,0 };
+	ScreenTextureUploadBuffer->Map(0, &readRange, (void**)&mappedResource);
+
+	textureLocation.pResource = ScreenTexture.Get();
+	textureLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	textureLocation.SubresourceIndex = 0;
+
+	bufferLocation.pResource = ScreenTextureUploadBuffer.Get();
+	bufferLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+
+	cpuScreenBufferData = new UCHAR[bufferSize];
+	memset(cpuScreenBufferData, 0, bufferSize);
+
+	initResourceTransitionTable();
+}
+
+void PPU::initResourceTransitionTable()
 {
 	// copy buffer to texture
 	transitionTable[0] = CD3DX12_RESOURCE_BARRIER::Transition(ScreenTexture.Get(),
@@ -92,4 +151,20 @@ void PPU::InitResourceTransitionTable()
 		D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_GENERIC_READ);
 	transitionTable[7] = CD3DX12_RESOURCE_BARRIER::Transition(nullptr,
 		 D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+}
+
+void PPU::visibleScanline()
+{
+}
+
+void PPU::postRenderScanline()
+{
+}
+
+void PPU::vblankScanline()
+{
+}
+
+void PPU::preRenderScanline()
+{
 }

@@ -8,41 +8,25 @@ using namespace std;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nShowCmd)
 {
-	Window window(1000, 1000, L"test", L"NES emulator");
+	Window window(1024, 1024, L"test", L"NES emulator");
+
 	string filename = lpCmdLine;
 	NesFile game(filename);
-	CPU cpu_emulator(&game);
 	PPU ppu_emulator(window.GetWindowHWND());
+	CPU cpu_emulator(&game, &ppu_emulator);
 
+	char ppu_clocks = 0;
 	while (window.ProcessMessages() == 0)
 	{
-		cpu_emulator.clock();
+		ppu_emulator.clock();
 
-		for (int y = 0; y < 10; y++)
+		if ((ppu_clocks + 1) % 3 == 0)
 		{
-			for (int x = 40; x < 100; x++)
-			{
-				ppu_emulator.writePixel(x, y, 30, 123, 90, 255);
-			}
-		}
-
-
-		for (int y = 0; y < 500; y++)
-		{
-			for (int x = 960; x < 999; x++)
-			{
-				ppu_emulator.writePixel(x, y, 255, 123, 90, 255);
-			}
-		}
-
-		for (int y = 700; y < 999; y++)
-		{
-			for (int x = 400; x < 1000; x++)
-			{
-				ppu_emulator.writePixel(x, y, 255, 255, 255, 255);
-			}
+			ppu_clocks = 0;
+			cpu_emulator.clock();
 		}
 
 		ppu_emulator.render();
+		ppu_clocks++;
 	}
 }

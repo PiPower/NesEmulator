@@ -1,23 +1,37 @@
 #pragma once
 #include "inttypes.h"
 
-typedef unsigned char bit; 
+typedef unsigned char byte;
 struct FlagBits
 {
-	bit carry : 1;
-	bit zero : 1;
-	bit interrupt : 1;
-	bit decimal : 1;
-	bit break_bit : 1;
-	bit ignored : 1;
-	bit overflow : 1;
-	bit negative : 1;
+	byte carry : 1;
+	byte zero : 1;
+	byte interrupt : 1;
+	byte decimal : 1;
+	byte break_bit : 1;
+	byte ignored : 1;
+	byte overflow : 1;
+	byte negative : 1;
 };
 
 union FLAGS
 {
 	FlagBits FLAGS;
-	unsigned  char flagByte;
+	byte flagByte;
+};
+
+struct PPUStatusFlags
+{
+	byte open_bus : 5;
+	byte sprite_overflow : 1;
+	byte sprite_0_hit : 1;
+	byte vblank : 1;
+};
+
+union PPUSTATUS
+{
+	PPUStatusFlags status;
+	byte statusByte;
 };
 
 class CPU;
