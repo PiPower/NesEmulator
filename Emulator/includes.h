@@ -28,12 +28,29 @@ struct PPUStatusFlags
 	byte vblank : 1;
 };
 
+struct PPUConstrolFlags
+{
+	byte base_addr : 2;
+	byte addr_increment : 1;
+	byte sprite_pt_addr : 1;
+
+	byte background_pt_addr : 1;
+	byte sprite_size : 1;
+	byte ppu_master_slave : 1;
+	byte trigger_nmi : 1;
+};
+
 union PPUSTATUS
 {
 	PPUStatusFlags status;
 	byte statusByte;
 };
 
+union PPUCTRL
+{
+	PPUConstrolFlags flags;
+	byte Byte;
+};
 class CPU;
 struct TableEntry
 {

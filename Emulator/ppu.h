@@ -7,6 +7,7 @@ class PPU : public DeviceResources
 public:
 	PPU(HWND hwnd, NesFile* cartridge);
 	uint8_t readStatus();
+	void writeControll(uint8_t data);
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 	void clock();
@@ -23,6 +24,7 @@ private:
 private:
 	// PPU registers
 	PPUSTATUS status_reg;
+	PPUCTRL controller;
 	// internal data
 	bool trigger_nmi;
 	UINT scanline;

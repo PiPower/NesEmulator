@@ -27,6 +27,7 @@ private:
 	void LDY(void* data);
 	void BPL(void* data);
 	void RTI(void* data);
+	void STA(void* data);
 private:
 	// registers
 	uint16_t ip;

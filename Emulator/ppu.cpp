@@ -17,6 +17,16 @@ uint8_t PPU::readStatus()
 	return statusBuffer;
 }
 
+void PPU::writeControll(uint8_t data)
+{
+	uint8_t nmi_bit = controller.flags.trigger_nmi;
+	controller.Byte = data;
+	if (status_reg.status.vblank > 0 && nmi_bit == 0 && controller.flags.trigger_nmi > 0)
+	{
+		trigger_nmi = true;
+	}
+}
+
 void PPU::render()
 {
 	transitionTable[5].Transition.pResource = renderTargets[current_frame].Get();
