@@ -130,6 +130,9 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 		case 0 :
 			ppu->writeControll(data);
 			break;
+		case 1:
+			ppu->writeMask(data);
+			break;
 		}
 	}
 	else if (addr >= 0x8000 && addr <= 0xFFFF)

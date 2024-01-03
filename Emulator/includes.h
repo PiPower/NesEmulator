@@ -39,6 +39,19 @@ struct PPUConstrolFlags
 	byte ppu_master_slave : 1;
 	byte trigger_nmi : 1;
 };
+struct PPUMaskFlags
+{
+	byte grayscale : 1;
+	byte show_bg_leftmost : 1;
+	byte show_sprite_leftmost : 1;
+	byte show_bg : 1;
+
+	byte show_sprites : 1;
+	byte emph_red : 1;
+	byte emph_green : 1;
+	byte emph_blue : 1;
+};
+
 
 union PPUSTATUS
 {
@@ -51,6 +64,14 @@ union PPUCTRL
 	PPUConstrolFlags flags;
 	byte Byte;
 };
+
+
+union PPUMASK
+{
+	PPUMaskFlags flags;
+	byte Byte;
+};
+
 class CPU;
 struct TableEntry
 {
