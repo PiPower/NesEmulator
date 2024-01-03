@@ -2,7 +2,7 @@
 #include "../WindowsGraphics/d3dx12.h"
 
 PPU::PPU(HWND hwnd, NesFile* cartridge)
-	:DeviceResources(hwnd), cartridge(cartridge)
+	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
 {
 	initRenderingResources(hwnd);
 	reset();
@@ -88,8 +88,9 @@ void PPU::clock()
 	{
 		preRenderScanline();
 	}
+
 	cycle++;
-	if (scanline == 261 && cycle == 341)
+	if (scanline == 261 && cycle >= 341)
 	{
 		cycle = 0; 
 		scanline = 0;
@@ -105,6 +106,13 @@ void PPU::reset()
 	status_reg.statusByte = 0;
 	status_reg.status.vblank = 1;
 	status_reg.status.sprite_0_hit = 1;
+}
+
+bool PPU::triggerNMI()
+{
+	bool nmiBuff = trigger_nmi;
+	trigger_nmi = false;
+	return nmiBuff;
 }
 
 uint8_t PPU::readByte(uint16_t addr)
@@ -191,10 +199,18 @@ void PPU::vblankScanline()
 {
 	if (scanline == 241 && cycle == 0)
 	{
+		trigger_nmi = true;
 		status_reg.status.vblank = 1;
 	}
 }
 
 void PPU::preRenderScanline()
 {
+	if (cycle == 1)
+	{
+		status_reg.status.sprite_0_hit = 0;
+		status_reg.status.sprite_overflow = 0;
+		status_reg.status.vblank = 0;
+		trigger_nmi = false;
+	}
 }

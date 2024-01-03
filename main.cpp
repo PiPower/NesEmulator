@@ -26,7 +26,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 			cpu_emulator.clock();
 		}
 
-
+		if (ppu_emulator.triggerNMI())
+		{
+			cpu_emulator.nonMaskableInterrupt();
+		}
 
 		// for performance reasons perform window related events every n iterations of main loop
 		if ((ticks +1)%(3 * 100 * 200) == 0 )

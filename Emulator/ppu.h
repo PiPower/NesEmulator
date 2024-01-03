@@ -11,6 +11,7 @@ public:
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 	void clock();
 	void reset();
+	bool triggerNMI();
 private:
 	uint8_t readByte(uint16_t addr);
 	void initRenderingResources(HWND hwnd);
@@ -23,6 +24,7 @@ private:
 	// PPU registers
 	PPUSTATUS status_reg;
 	// internal data
+	bool trigger_nmi;
 	UINT scanline;
 	UINT cycle;
 	uint8_t* nametableRAM;

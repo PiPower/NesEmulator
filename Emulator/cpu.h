@@ -12,6 +12,7 @@ public:
 	void nonMaskableInterrupt();
 private:
 	uint8_t readByte(uint16_t addr);
+	void writeByte(uint16_t addr, uint8_t data);
 private:
 	// memory loading
 	uint8_t IMM(void* data);
@@ -25,6 +26,7 @@ private:
 	void LDA(void* data);
 	void LDY(void* data);
 	void BPL(void* data);
+	void RTI(void* data);
 private:
 	// registers
 	uint16_t ip;
