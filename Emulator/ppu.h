@@ -5,15 +5,18 @@
 class PPU : public DeviceResources
 {
 public:
+	//emulator functions
 	PPU(HWND hwnd, NesFile* cartridge);
 	uint8_t readStatus();
 	void writeControll(uint8_t data);
 	void writeMask(uint8_t data);
-	void render();
-	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
+	void writeScroll(uint8_t data);
 	void clock();
 	void reset();
 	bool triggerNMI();
+	// graphics function
+	void render();
+	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 private:
 	uint8_t readByte(uint16_t addr);
 	void initRenderingResources(HWND hwnd);
@@ -27,6 +30,9 @@ private:
 	PPUSTATUS status_reg;
 	PPUCTRL controller;
 	PPUMASK mask_reg;
+	uint8_t w_register;
+	uint8_t x_scroll;
+	uint8_t y_scroll;
 	// internal data
 	bool trigger_nmi;
 	UINT scanline;

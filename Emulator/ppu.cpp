@@ -14,6 +14,7 @@ uint8_t PPU::readStatus()
 {
 	uint8_t statusBuffer = status_reg.statusByte;
 	status_reg.status.vblank = 0;
+	w_register = 0;
 	return statusBuffer;
 }
 
@@ -30,6 +31,20 @@ void PPU::writeControll(uint8_t data)
 void PPU::writeMask(uint8_t data)
 {
 	mask_reg.Byte = data;
+}
+
+void PPU::writeScroll(uint8_t data)
+{
+	if (w_register == 0)
+	{
+		x_scroll = data;
+		w_register = 1;
+	}
+	if (w_register == 1)
+	{
+		y_scroll = data;
+		w_register = 0;
+	}
 }
 
 void PPU::render()
@@ -118,6 +133,9 @@ void PPU::reset()
 	scanline = 0;
 	cycle = 0;
 
+	x_scroll = 0;
+	y_scroll = 0;
+	w_register = 0;
 	controller.Byte = 0;
 	mask_reg.Byte = 0;
 	status_reg.statusByte = 0;
