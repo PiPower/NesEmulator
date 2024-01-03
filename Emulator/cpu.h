@@ -28,6 +28,7 @@ private:
 	void BPL(void* data);
 	void RTI(void* data);
 	void STA(void* data);
+	void STX(void* data);
 private:
 	// registers
 	uint16_t ip;

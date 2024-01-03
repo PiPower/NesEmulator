@@ -40,11 +40,31 @@ void PPU::writeScroll(uint8_t data)
 		x_scroll = data;
 		w_register = 1;
 	}
-	if (w_register == 1)
+	else if (w_register == 1)
 	{
 		y_scroll = data;
 		w_register = 0;
 	}
+}
+
+void PPU::writeAddr(uint8_t data)
+{
+	if (w_register == 0)
+	{
+		internal_addr |= data << 8;
+		w_register = 1;
+	}
+	else if (w_register == 1)
+	{
+		internal_addr |= data;
+		w_register = 0;
+	}
+}
+
+void PPU::writeData(uint8_t data)
+{
+	writeByte(internal_addr, data);
+	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
 }
 
 void PPU::render()
@@ -164,6 +184,11 @@ uint8_t PPU::readByte(uint16_t addr)
 	{
 
 	}
+}
+
+void PPU::writeByte(uint16_t addr, uint8_t data)
+{
+
 }
 
 void PPU::initRenderingResources(HWND hwnd)

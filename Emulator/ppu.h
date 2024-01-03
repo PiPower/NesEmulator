@@ -11,6 +11,8 @@ public:
 	void writeControll(uint8_t data);
 	void writeMask(uint8_t data);
 	void writeScroll(uint8_t data);
+	void writeAddr(uint8_t data);
+	void writeData(uint8_t data);
 	void clock();
 	void reset();
 	bool triggerNMI();
@@ -19,6 +21,7 @@ public:
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 private:
 	uint8_t readByte(uint16_t addr);
+	void writeByte(uint16_t addr, uint8_t);
 	void initRenderingResources(HWND hwnd);
 	void initResourceTransitionTable();
 	void visibleScanline();
@@ -33,6 +36,7 @@ private:
 	uint8_t w_register;
 	uint8_t x_scroll;
 	uint8_t y_scroll;
+	uint16_t internal_addr;
 	// internal data
 	bool trigger_nmi;
 	UINT scanline;
