@@ -15,8 +15,8 @@ private:
 	void writeByte(uint16_t addr, uint8_t data);
 private:
 	// memory loading
-	uint8_t IMM(void* data);
-	uint8_t ABS(void* data);
+	uint16_t IMM(void* data);
+	uint16_t ABS(void* data);
 	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);

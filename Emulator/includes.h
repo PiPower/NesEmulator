@@ -40,7 +40,7 @@ struct TableEntry
 	// translates given instruction
 	void (CPU::* translator)(void* data);
 	//translates given addres to required one by instruction
-	uint8_t (CPU::* memoryLoader)(void* data);
+	uint16_t (CPU::* memoryLoader)(void* data);
 	uint8_t cycles;
 };
 
