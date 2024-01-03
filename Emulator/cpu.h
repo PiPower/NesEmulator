@@ -17,6 +17,7 @@ private:
 	// memory loading
 	uint16_t IMM(void* data);
 	uint16_t ABS(void* data);
+	uint16_t REL(void* data);
 	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);
@@ -29,6 +30,8 @@ private:
 	void RTI(void* data);
 	void STA(void* data);
 	void STX(void* data);
+	void DEX(void* data);
+	void BNE(void* data);
 private:
 	// registers
 	uint16_t ip;
@@ -40,7 +43,7 @@ private:
 	// device 
 	uint8_t* RAM;
 	NesFile* cartridge;
-	static TableEntry instructionTable[0x0F][0x0F];
+	static TableEntry instructionTable[0x10][0x10];
 	uint16_t cycles;
 	PPU* ppu;
 };
