@@ -52,3 +52,11 @@ union PPUMASK
 	PPUMaskFlags flags;
 	byte Byte;
 };
+
+struct PixelColor
+{
+	byte R;
+	byte G;
+	byte B;
+	byte A;
+};

@@ -19,6 +19,7 @@ public:
 	// graphics function
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
+	void RenderPatternTables();
 private:
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
@@ -28,6 +29,7 @@ private:
 	void postRenderScanline();
 	void vblankScanline();
 	void preRenderScanline();
+	void drawTile(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 private:
 	// PPU registers
 	PPUSTATUS status_reg;
@@ -42,9 +44,9 @@ private:
 	UINT scanline;
 	UINT cycle;
 	uint8_t* nametableRAM;
-	uint8_t* palleteRAM;
+	PixelColor* palleteLookup;
 	NesFile* cartridge;
-
+	
 	// DirectX stuff
 	D3D12_RESOURCE_BARRIER transitionTable[8];
 	ComPtr<ID3D12Resource> ScreenTexture;

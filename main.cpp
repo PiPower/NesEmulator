@@ -14,6 +14,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 	NesFile game(filename);
 	PPU ppu_emulator(window.GetWindowHWND(), &game);
 	CPU cpu_emulator(&game, &ppu_emulator);
+	ppu_emulator.RenderPatternTables();
 
 	UINT ticks = 0;
 	bool run_app = true;

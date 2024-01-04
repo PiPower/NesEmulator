@@ -57,7 +57,7 @@ uint8_t NesFile::readByteCPU(uint16_t addr)
 uint8_t NesFile::readBytePPU(uint16_t addr)
 {
 	uint16_t trasnlated_addr = (this->*mapperPPU)(addr);
-	return PGR_ROM[trasnlated_addr];
+	return CHR_ROM[trasnlated_addr];
 }
 
 uint16_t NesFile::readMirrorCPU000(uint16_t addr)
