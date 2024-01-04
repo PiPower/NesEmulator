@@ -103,7 +103,7 @@ uint8_t CPU::readByte(uint16_t addr)
 		switch (registerAddr)
 		{
 		case 0x02:
-			return ppu->readStatus();
+			return ppu->readStatusRegister();
 			break;
 		}
 	}
@@ -128,19 +128,19 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 		switch (registerAddr)
 		{
 		case 0 :
-			ppu->writeControll(data);
+			ppu->writeControllRegister(data);
 			break;
 		case 1:
-			ppu->writeMask(data);
+			ppu->writeMaskRegister(data);
 			break;
 		case 5:
-			ppu->writeScroll(data);
+			ppu->writeScrollRegister(data);
 			break;
 		case 6:
-			ppu->writeAddr(data);
+			ppu->writeAddrRegister(data);
 			break;
 		case 7:
-			ppu->writeData(data);
+			ppu->writeDataRegister(data);
 			break;
 		}
 	}

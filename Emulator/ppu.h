@@ -7,12 +7,12 @@ class PPU : public DeviceResources
 public:
 	//emulator functions
 	PPU(HWND hwnd, NesFile* cartridge);
-	uint8_t readStatus();
-	void writeControll(uint8_t data);
-	void writeMask(uint8_t data);
-	void writeScroll(uint8_t data);
-	void writeAddr(uint8_t data);
-	void writeData(uint8_t data);
+	uint8_t readStatusRegister();
+	void writeControllRegister(uint8_t data);
+	void writeMaskRegister(uint8_t data);
+	void writeScrollRegister(uint8_t data);
+	void writeAddrRegister(uint8_t data);
+	void writeDataRegister(uint8_t data);
 	void clock();
 	void reset();
 	bool triggerNMI();

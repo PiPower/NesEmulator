@@ -83,7 +83,7 @@ PPU::PPU(HWND hwnd, NesFile* cartridge)
 	palleteLookup[0x3F] = PixelColor{0, 0, 0, 255};
 }
 
-uint8_t PPU::readStatus()
+uint8_t PPU::readStatusRegister()
 {
 	uint8_t statusBuffer = status_reg.statusByte;
 	status_reg.status.vblank = 0;
@@ -91,7 +91,7 @@ uint8_t PPU::readStatus()
 	return statusBuffer;
 }
 
-void PPU::writeControll(uint8_t data)
+void PPU::writeControllRegister(uint8_t data)
 {
 	uint8_t nmi_bit = controller.flags.trigger_nmi;
 	controller.Byte = data;
@@ -101,12 +101,12 @@ void PPU::writeControll(uint8_t data)
 	}
 }
 
-void PPU::writeMask(uint8_t data)
+void PPU::writeMaskRegister(uint8_t data)
 {
 	mask_reg.Byte = data;
 }
 
-void PPU::writeScroll(uint8_t data)
+void PPU::writeScrollRegister(uint8_t data)
 {
 	if (w_register == 0)
 	{
@@ -120,7 +120,7 @@ void PPU::writeScroll(uint8_t data)
 	}
 }
 
-void PPU::writeAddr(uint8_t data)
+void PPU::writeAddrRegister(uint8_t data)
 {
 	if (w_register == 0)
 	{
@@ -134,7 +134,7 @@ void PPU::writeAddr(uint8_t data)
 	}
 }
 
-void PPU::writeData(uint8_t data)
+void PPU::writeDataRegister(uint8_t data)
 {
 	writeByte(internal_addr, data);
 	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
