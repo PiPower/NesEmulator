@@ -1,6 +1,6 @@
 #pragma once
 #include "../WindowsGraphics/DeviceResources.h"
-#include "includes.h"
+#include "ppu_includes.h"
 #include "../NesFile.h"
 class PPU : public DeviceResources
 {
@@ -44,6 +44,7 @@ private:
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	NesFile* cartridge;
+
 	// DirectX stuff
 	D3D12_RESOURCE_BARRIER transitionTable[8];
 	ComPtr<ID3D12Resource> ScreenTexture;

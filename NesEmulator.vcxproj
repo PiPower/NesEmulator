@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="Emulator\cpu.h" />
     <ClInclude Include="Emulator\ppu.h" />
+    <ClInclude Include="Emulator\ppu_includes.h" />
     <ClInclude Include="WindowsGraphics\d3dx12.h" />
     <ClInclude Include="WindowsGraphics\DeviceResources.h" />
     <ClInclude Include="Emulator\includes.h" />

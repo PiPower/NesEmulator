@@ -56,5 +56,8 @@
     <ClInclude Include="Emulator\ppu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Emulator\ppu_includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

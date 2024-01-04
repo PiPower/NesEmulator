@@ -31,6 +31,7 @@ private:
 	void STA(void* data);
 	void STX(void* data);
 	void DEX(void* data);
+	void DEY(void* data);
 	void BNE(void* data);
 private:
 	// registers
