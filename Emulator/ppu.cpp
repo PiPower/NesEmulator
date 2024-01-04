@@ -1,12 +1,17 @@
 #include "ppu.h"
 #include "../WindowsGraphics/d3dx12.h"
 
+#define PATTERN_TILE_SIZE 2
+
+#define RENDER_PATTERN_TABLE
+
 PPU::PPU(HWND hwnd, NesFile* cartridge)
 	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
 {
 	initRenderingResources(hwnd);
 	reset();
 	nametableRAM = new uint8_t[1024 * 2];
+	palleteRAM = new  uint8_t[0x20];
 
 	palleteLookup = new PixelColor[0x40];
 	palleteLookup[0x00] = PixelColor{84, 84, 84, 255};
@@ -191,6 +196,7 @@ void PPU::RenderPatternTables()
 					hi <<= 1;
 					lo <<= 1;
 
+					uint8_t table_index = readByte(0x3F00 + index );
 					drawTile(x * 8 + i, y * 8 + j, palleteLookup[index].R,
 						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A);
 
@@ -201,7 +207,6 @@ void PPU::RenderPatternTables()
 			base_addr += 0x08;
 		}
 	}
-	render();
 }
 
 void PPU::clock()
@@ -243,6 +248,10 @@ void PPU::clock()
 	{
 		cycle = 0; 
 		scanline = 0;
+
+#ifdef RENDER_PATTERN_TABLE
+		RenderPatternTables();
+#endif
 		render();
 	}
 }
@@ -287,7 +296,18 @@ uint8_t PPU::readByte(uint16_t addr)
 
 void PPU::writeByte(uint16_t addr, uint8_t data)
 {
+	if (addr >= 0x0000 && addr <= 0x1FFF)
+	{
+	}
+	if (addr >= 0x2000 && addr <= 0x3EFF)
+	{
 
+	}
+	if (addr >= 0x3F00 && addr <= 0x3FFF)
+	{
+		addr = addr & 0x001F;
+		palleteRAM[addr] = data;
+	}
 }
 
 void PPU::initRenderingResources(HWND hwnd)
@@ -377,11 +397,11 @@ void PPU::preRenderScanline()
 void PPU::drawTile(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
 {
 
-	uint16_t pixel_x = x * 4;
-	uint16_t pixel_y = y * 4;
-	for (uint16_t j = 0; j < 4; j++)
+	uint16_t pixel_x = x * PATTERN_TILE_SIZE;
+	uint16_t pixel_y = y * PATTERN_TILE_SIZE;
+	for (uint16_t j = 0; j < PATTERN_TILE_SIZE; j++)
 	{
-		for (uint16_t i = 0; i < 4; i++)
+		for (uint16_t i = 0; i < PATTERN_TILE_SIZE; i++)
 		{
 			writePixel(pixel_x + i, pixel_y + j, R, G, B, A);
 		}

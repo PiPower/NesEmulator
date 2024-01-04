@@ -44,6 +44,7 @@ private:
 	UINT scanline;
 	UINT cycle;
 	uint8_t* nametableRAM;
+	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;
 	NesFile* cartridge;
 	

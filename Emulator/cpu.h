@@ -18,6 +18,9 @@ private:
 	uint16_t IMM(void* data);
 	uint16_t ABS(void* data);
 	uint16_t REL(void* data);
+	uint16_t IND_Y(void* data);
+	uint16_t X_IDX(void* data);
+	uint16_t ZPG(void* data);
 	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);
@@ -30,9 +33,13 @@ private:
 	void RTI(void* data);
 	void STA(void* data);
 	void STX(void* data);
+	void STY(void* data);
 	void DEX(void* data);
 	void DEY(void* data);
 	void BNE(void* data);
+	void INX(void* data);
+	void CPX(void* data);
+	void RTS(void* data);
 private:
 	// registers
 	uint16_t ip;
