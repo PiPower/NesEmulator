@@ -5,7 +5,7 @@
 #define PATTERN_TABLE_OFFSET_X 768
 #define PATTERN_TABLE_OFFSET_Y 0
 #define RENDER_PATTERN_TABLE
-
+#define RENDER_NAME_TABLE
 PPU::PPU(HWND hwnd, NesFile* cartridge)
 	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
 {
@@ -197,14 +197,45 @@ void PPU::RenderPatternTables()
 					hi <<= 1;
 					lo <<= 1;
 
-					drawTile(x * 8 + i, y * 8 + j, palleteLookup[index].R,
-						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A);
+					drawTile(x * 8 + i, y * 8 + j,PATTERN_TILE_SIZE ,palleteLookup[index].R,
+						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, PATTERN_TABLE_OFFSET_X, PATTERN_TABLE_OFFSET_Y);
 
 				}
 				base_addr++;
 			}
 
 			base_addr += 0x08;
+		}
+	}
+}
+
+void PPU::RenderRawNametable(uint8_t i)
+{
+	for (uint8_t y = 0; y < 30; y++)
+	{
+		for (uint8_t x = 0; x < 32; x++)
+		{
+			uint8_t patternTableIndex =  readByte(0x2000 + y * 32 + x);
+			uint16_t patternTableAddr = patternTableIndex * 16;
+
+			for (uint8_t j = 0; j < 8; j++)
+			{
+				uint8_t lo = readByte(patternTableAddr);
+				uint8_t hi = readByte(0x0008 + patternTableAddr);
+				for (uint8_t i = 0; i < 8; i++)
+				{
+					uint8_t index = ((hi & 0x80) >> 6) | ((lo & 0x80) >> 7);
+					hi <<= 1;
+					lo <<= 1;
+
+					drawTile(x * 8 + i, y * 8 + j, 2, palleteLookup[index].R,
+						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, 0, 0);
+
+				}
+				patternTableAddr++;
+			}
+
+
 		}
 	}
 }
@@ -252,6 +283,10 @@ void PPU::clock()
 #ifdef RENDER_PATTERN_TABLE
 		RenderPatternTables();
 #endif
+#ifdef RENDER_NAME_TABLE
+		RenderRawNametable(0);
+#endif // RENDER_NAME_TABLE
+
 		render();
 	}
 }
@@ -332,7 +367,7 @@ void PPU::writeByte(uint16_t addr, uint8_t data)
 		}
 		if (cartridge->getNametableMirroring() == VERTICAL) //horizontal
 		{
-			if (nametable_addr >= 0x0800) nametable_addr -= 0x0800;
+			if (nametable_addr >= 0x0800) nametable_addr -= 0x0800; // map to 0 - 0x07FF
 			nametableRAM[nametable_addr] = data;
 		}
 	}
@@ -431,16 +466,16 @@ void PPU::preRenderScanline()
 	}
 }
 
-void PPU::drawTile(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
+void PPU::drawTile(UINT x, UINT y, UINT  tile_size, UCHAR R, UCHAR G, UCHAR B, UCHAR A, UINT tile_offset_x, UINT tile_offset_y)
 {
 
-	uint16_t pixel_x = x * PATTERN_TILE_SIZE;
-	uint16_t pixel_y = y * PATTERN_TILE_SIZE;
-	for (uint16_t j = 0; j < PATTERN_TILE_SIZE; j++)
+	uint16_t pixel_x = x * tile_size;
+	uint16_t pixel_y = y * tile_size;
+	for (uint16_t j = 0; j < tile_size; j++)
 	{
-		for (uint16_t i = 0; i < PATTERN_TILE_SIZE; i++)
+		for (uint16_t i = 0; i < tile_size; i++)
 		{
-			writePixel(pixel_x + i + PATTERN_TABLE_OFFSET_X, pixel_y + j + PATTERN_TABLE_OFFSET_Y, R, G, B, A);
+			writePixel(pixel_x + i + tile_offset_x, pixel_y + j + tile_offset_y, R, G, B, A);
 		}
 	}
 }

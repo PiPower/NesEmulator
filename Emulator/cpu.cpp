@@ -58,6 +58,7 @@ void CPU::clock()
 	uint8_t highNibble= instruction_code >> 4;
 	uint8_t lowNibble = instruction_code & 0x0F;
 	TableEntry instructionEntry = this->instructionTable[highNibble][lowNibble];
+	
 
 	uint16_t loadedAddres;
 	uint16_t* ptrAddr = nullptr;
@@ -82,8 +83,8 @@ void CPU::nonMaskableInterrupt()
 	writeByte(0x0100 + stack_ptr, status_reg.flagByte);
 	stack_ptr--;
 
-	uint16_t lo = readByte(0xFFFE);
-	uint16_t hi = readByte(0xFFFF);
+	uint16_t lo = readByte(0xFFFA);
+	uint16_t hi = readByte(0xFFFB);
 
 	ip = lo | hi << 8;
 
@@ -374,8 +375,9 @@ void CPU::CPX(void* data)
 
 void CPU::CMP(void* data)
 {
-	uint8_t result = accumulator - readByte(*(uint16_t*)data);
-	if (accumulator >= readByte(*(uint16_t*)data))   status_reg.FLAGS.carry = 1;
+	uint8_t temp = readByte(*(uint16_t*)data);
+	uint8_t result = accumulator - temp;
+	if (accumulator >= result)   status_reg.FLAGS.carry = 1;
 	else status_reg.FLAGS.carry = 0;
 	if (result == 0)   status_reg.FLAGS.zero = 1;
 	else status_reg.FLAGS.zero = 0;

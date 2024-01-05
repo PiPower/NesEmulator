@@ -20,6 +20,7 @@ public:
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
 	void RenderPatternTables();
+	void RenderRawNametable(uint8_t i);
 private:
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
@@ -29,7 +30,7 @@ private:
 	void postRenderScanline();
 	void vblankScanline();
 	void preRenderScanline();
-	void drawTile(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
+	void drawTile(UINT x, UINT y, UINT  tile_size ,UCHAR R, UCHAR G, UCHAR B, UCHAR A, UINT tile_offset_x = 0, UINT tile_offset_y = 0);
 private:
 	// PPU registers
 	PPUSTATUS status_reg;
