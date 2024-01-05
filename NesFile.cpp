@@ -48,6 +48,11 @@ NesFile::NesFile(std::string path)
 	mapperPPU = &NesFile::readMirrorPPU000;
 }
 
+uint8_t NesFile::getNametableMirroring()
+{
+	return Flags6 & 0x01;
+}
+
 uint8_t NesFile::readByteCPU(uint16_t addr)
 {
 	uint16_t trasnlated_addr = (this->*mapperCPU)(addr);

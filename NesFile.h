@@ -1,9 +1,12 @@
 #pragma once
 #include <string>
+#define HORIZONTAL 0 
+#define VERTICAL 1
 class NesFile
 {
 public:
 	NesFile(std::string path);
+	uint8_t getNametableMirroring();
 	uint8_t readByteCPU(uint16_t addr);
 	uint8_t readBytePPU(uint16_t addr);
 private:

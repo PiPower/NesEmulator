@@ -2,7 +2,8 @@
 #include "../WindowsGraphics/d3dx12.h"
 
 #define PATTERN_TILE_SIZE 2
-
+#define PATTERN_TABLE_OFFSET_X 768
+#define PATTERN_TABLE_OFFSET_Y 0
 #define RENDER_PATTERN_TABLE
 
 PPU::PPU(HWND hwnd, NesFile* cartridge)
@@ -10,7 +11,7 @@ PPU::PPU(HWND hwnd, NesFile* cartridge)
 {
 	initRenderingResources(hwnd);
 	reset();
-	nametableRAM = new uint8_t[1024 * 2];
+	nametableRAM = new uint8_t[0x0800];
 	palleteRAM = new  uint8_t[0x20];
 
 	palleteLookup = new PixelColor[0x40];
@@ -196,7 +197,6 @@ void PPU::RenderPatternTables()
 					hi <<= 1;
 					lo <<= 1;
 
-					uint8_t table_index = readByte(0x3F00 + index );
 					drawTile(x * 8 + i, y * 8 + j, palleteLookup[index].R,
 						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A);
 
@@ -286,11 +286,29 @@ uint8_t PPU::readByte(uint16_t addr)
 	}
 	if (addr >= 0x2000 && addr <= 0x3EFF)
 	{
+		uint16_t nametable_addr = addr &= 0x0FFF;
+		if (cartridge->getNametableMirroring() == HORIZONTAL) //horizontal
+		{
+			if (nametable_addr >= 0x0400 && nametable_addr <= 0x07FF) nametable_addr -= 0x0400; // map to 0 - 0x3FF
+			else if (nametable_addr >= 0x0800 && nametable_addr <= 0x0BFF) nametable_addr -= 0x0400;// map to 0x0400 - 0x7FF
+			else if (nametable_addr >= 0x0C00 && nametable_addr <= 0x0FFF) nametable_addr -= 0x0800; // map to 0x0400 - 0x7FF
 
+			return nametableRAM[nametable_addr];
+		}
+		if (cartridge->getNametableMirroring() == VERTICAL) //horizontal
+		{
+			if (nametable_addr >= 0x0800) nametable_addr -= 0x0800;
+			return nametableRAM[nametable_addr];
+		}
 	}
 	if (addr >= 0x3F00 && addr <= 0x3FFF)
 	{
-
+		addr = addr & 0x001F;
+		if (addr == 0x0010) addr = 0x0000;
+		if (addr == 0x0014) addr = 0x0004;
+		if (addr == 0x0018) addr = 0x0008;
+		if (addr == 0x001C) addr = 0x000C;
+		return palleteRAM[addr];
 	}
 }
 
@@ -298,14 +316,33 @@ void PPU::writeByte(uint16_t addr, uint8_t data)
 {
 	if (addr >= 0x0000 && addr <= 0x1FFF)
 	{
+		OutputDebugStringW(L"Pattern table writes not supported \n");
+		exit(-1);
 	}
 	if (addr >= 0x2000 && addr <= 0x3EFF)
 	{
+		uint16_t nametable_addr = addr &= 0x0FFF;
+		if (cartridge->getNametableMirroring() == HORIZONTAL) //horizontal
+		{
+			if (nametable_addr >= 0x0400 && nametable_addr <= 0x07FF) nametable_addr -= 0x0400; // map to 0 - 0x3FF
+			else if (nametable_addr >= 0x0800 && nametable_addr <= 0x0BFF) nametable_addr -= 0x0400; // map to 0x0400 - 0x7FF
+			else if (nametable_addr >= 0x0C00 && nametable_addr <= 0x0FFF) nametable_addr -= 0x0800; // map to 0x0400 - 0x7FF
 
+			nametableRAM[nametable_addr] = data;
+		}
+		if (cartridge->getNametableMirroring() == VERTICAL) //horizontal
+		{
+			if (nametable_addr >= 0x0800) nametable_addr -= 0x0800;
+			nametableRAM[nametable_addr] = data;
+		}
 	}
 	if (addr >= 0x3F00 && addr <= 0x3FFF)
 	{
 		addr = addr & 0x001F;
+		if (addr == 0x0010) addr = 0x0000;
+		if (addr == 0x0014) addr = 0x0004;
+		if (addr == 0x0018) addr = 0x0008;
+		if (addr == 0x001C) addr = 0x000C;
 		palleteRAM[addr] = data;
 	}
 }
@@ -378,7 +415,7 @@ void PPU::vblankScanline()
 {
 	if (scanline == 241 && cycle == 0)
 	{
-		trigger_nmi = true;
+		trigger_nmi = controller.flags.trigger_nmi > 0 ? true : false;
 		status_reg.status.vblank = 1;
 	}
 }
@@ -403,7 +440,7 @@ void PPU::drawTile(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
 	{
 		for (uint16_t i = 0; i < PATTERN_TILE_SIZE; i++)
 		{
-			writePixel(pixel_x + i, pixel_y + j, R, G, B, A);
+			writePixel(pixel_x + i + PATTERN_TABLE_OFFSET_X, pixel_y + j + PATTERN_TABLE_OFFSET_Y, R, G, B, A);
 		}
 	}
 }

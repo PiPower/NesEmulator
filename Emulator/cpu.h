@@ -38,8 +38,12 @@ private:
 	void DEY(void* data);
 	void BNE(void* data);
 	void INX(void* data);
+	void INY(void* data);
+	void INC(void* data);
 	void CPX(void* data);
+	void CMP(void* data);
 	void RTS(void* data);
+	void BEQ(void* data);
 private:
 	// registers
 	uint16_t ip;
