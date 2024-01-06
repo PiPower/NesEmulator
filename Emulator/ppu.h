@@ -46,6 +46,7 @@ private:
 	uint8_t nametable_latch;
 	uint8_t shifter_up_latch;
 	uint8_t shifter_down_latch;
+	uint8_t attribute_latch;
 	// internal data
 	bool trigger_nmi;
 	UINT scanline;

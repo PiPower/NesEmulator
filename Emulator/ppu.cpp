@@ -452,11 +452,11 @@ void PPU::visibleScanline()
 
 		if (pixelId == 0 && cycle > 1)
 		{
-			shift_register_down <<= 8;
-			shift_register_up <<= 8;
+			shift_register_down >>= 8;
+			shift_register_up >>= 8;
 
-			shift_register_down = (shift_register_down & 0xFF00) | shifter_down_latch;
-			shift_register_up = (shift_register_up & 0xFF00) | shifter_up_latch;
+			shift_register_down = (shift_register_down & 0x00FF) | ((uint16_t)shifter_down_latch << 8);
+			shift_register_up = (shift_register_up & 0x00FF) | ((uint16_t)shifter_up_latch << 8);
 		}
 
 
@@ -470,6 +470,7 @@ void PPU::visibleScanline()
 		}
 			break;
 		case 2:
+			attribute_latch = readByte(0x2000 + 0x03C0);
 			break;
 		case 4:
 			shifter_down_latch = readByte(nametable_latch * 16 + scanline%8);
@@ -480,8 +481,9 @@ void PPU::visibleScanline()
 		}
 
 
-		uint8_t patternLo = ((shift_register_down << pixelId) & 0x8000) >> 16;
-		uint8_t patternHi = ((shift_register_up << pixelId) & 0x8000) >> 15;
+		pixelId = 7 - pixelId;
+		uint8_t patternLo = (shift_register_down >> pixelId) & 1;
+		uint8_t patternHi = (shift_register_up >> pixelId) & 1;
 
 		PixelColor color = palleteLookup[patternHi | patternLo];
 		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
@@ -510,9 +512,19 @@ void PPU::preRenderScanline()
 		status_reg.status.vblank = 0;
 		trigger_nmi = false;
 	}
-	if (cycle >= 321 && cycle <= 336)
+	if (cycle >= 321 && cycle <= 337)
 	{
 		uint8_t pixelId = (cycle - 321) % 8;
+
+		if (pixelId == 0 && cycle > 321)
+		{
+			shift_register_down >>= 8;
+			shift_register_up >>= 8;
+
+			shift_register_down = (shift_register_down & 0x00FF) | (shifter_down_latch << 8);
+			shift_register_up = (shift_register_up & 0x00FF) | (shifter_up_latch << 8);
+		}
+
 		switch (pixelId)
 		{
 		case 0:
