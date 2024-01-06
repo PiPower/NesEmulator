@@ -25,8 +25,12 @@ private:
 	void JSR(void* data);
 	void SEI(void* data);
 	void CLD(void* data);
+	void CLC(void* data);
 	void LDX(void* data);
 	void TXS(void* data);
+	void TXA(void* data);
+	void TAX(void* data);
+	void TAY(void* data);
 	void LDA(void* data);
 	void LDY(void* data);
 	void BPL(void* data);
@@ -44,6 +48,17 @@ private:
 	void CMP(void* data);
 	void RTS(void* data);
 	void BEQ(void* data);
+	void PHA(void* data);
+	void LSRA(void* data);
+	void ROLA(void* data);
+	void ROL(void* data);
+	void EOR(void* data);
+	void AND(void* data);
+	void ORA(void* data);
+	void PLA(void* data);
+	void ADC(void* data);
+	void JMP(void* data);
+	void BCS(void* data);
 private:
 	// registers
 	uint16_t ip;

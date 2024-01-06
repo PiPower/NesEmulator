@@ -125,12 +125,12 @@ void PPU::writeAddrRegister(uint8_t data)
 {
 	if (w_register == 0)
 	{
-		internal_addr |= data << 8;
+		internal_addr = (data << 8) | (internal_addr & 0x00FF);
 		w_register = 1;
 	}
 	else if (w_register == 1)
 	{
-		internal_addr |= data;
+		internal_addr = (data) | (internal_addr & 0xFF00);
 		w_register = 0;
 	}
 }
@@ -285,7 +285,7 @@ void PPU::clock()
 #endif
 #ifdef RENDER_NAME_TABLE
 		RenderRawNametable(0);
-#endif // RENDER_NAME_TABLE
+#endif 
 
 		render();
 	}
