@@ -19,7 +19,7 @@ public:
 	// graphics function
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
-	void RenderPatternTables();
+	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
 	uint8_t readByte(uint16_t addr);
@@ -40,6 +40,12 @@ private:
 	uint8_t x_scroll;
 	uint8_t y_scroll;
 	uint16_t internal_addr;
+	uint16_t shift_register_up;
+	uint16_t shift_register_down;
+	// latches for temporal data
+	uint8_t nametable_latch;
+	uint8_t shifter_up_latch;
+	uint8_t shifter_down_latch;
 	// internal data
 	bool trigger_nmi;
 	UINT scanline;

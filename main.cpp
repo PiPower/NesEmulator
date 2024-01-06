@@ -8,7 +8,7 @@ using namespace std;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nShowCmd)
 {
-	Window window(1024, 1024, L"test", L"NES emulator");
+	Window window(1280, 1024, L"test", L"NES emulator");
 
 	string filename = lpCmdLine;
 	NesFile game(filename);

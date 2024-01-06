@@ -2,10 +2,10 @@
 #include "../WindowsGraphics/d3dx12.h"
 
 #define PATTERN_TILE_SIZE 2
-#define PATTERN_TABLE_OFFSET_X 768
+#define PATTERN_TABLE_OFFSET_X 1024
 #define PATTERN_TABLE_OFFSET_Y 0
 #define RENDER_PATTERN_TABLE
-#define RENDER_NAME_TABLE
+//#define RENDER_NAME_TABLE
 PPU::PPU(HWND hwnd, NesFile* cartridge)
 	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
 {
@@ -179,9 +179,9 @@ void PPU::writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
 	cpuScreenBufferData[pixelIndex + 3] = A;
 }
 
-void PPU::RenderPatternTables()
+void PPU::RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset)
 {
-	uint16_t base_addr = 0;
+	uint16_t base_addr = 0x1000 * i;
 	for (uint8_t y = 0; y < 16; y++)
 	{
 		for (uint8_t x = 0; x < 16; x++)
@@ -198,7 +198,7 @@ void PPU::RenderPatternTables()
 					lo <<= 1;
 
 					drawTile(x * 8 + i, y * 8 + j,PATTERN_TILE_SIZE ,palleteLookup[index].R,
-						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, PATTERN_TABLE_OFFSET_X, PATTERN_TABLE_OFFSET_Y);
+						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, x_offset, y_offset);
 
 				}
 				base_addr++;
@@ -255,7 +255,6 @@ void PPU::clock()
 
 	if (scanline >= 0 && scanline <= 239)
 	{
-		if(cycle < 256 )writePixel(cycle, scanline, 144, 255, 34, 255);
 		visibleScanline();
 	}
 
@@ -281,7 +280,8 @@ void PPU::clock()
 		scanline = 0;
 
 #ifdef RENDER_PATTERN_TABLE
-		RenderPatternTables();
+		RenderPatternTables(0, PATTERN_TABLE_OFFSET_X, PATTERN_TABLE_OFFSET_Y);
+		RenderPatternTables(1, PATTERN_TABLE_OFFSET_X, PATTERN_TABLE_OFFSET_Y + 256);
 #endif
 #ifdef RENDER_NAME_TABLE
 		RenderRawNametable(0);
@@ -440,6 +440,52 @@ void PPU::initResourceTransitionTable()
 
 void PPU::visibleScanline()
 {
+	if (cycle == 0)
+	{
+		return;
+	}
+
+	if (cycle >= 1 && cycle < 257)
+	{
+		uint8_t pixelId = (cycle - 1) % 8;
+
+
+		if (pixelId == 0 && cycle > 1)
+		{
+			shift_register_down <<= 8;
+			shift_register_up <<= 8;
+
+			shift_register_down = (shift_register_down & 0xFF00) | shifter_down_latch;
+			shift_register_up = (shift_register_up & 0xFF00) | shifter_up_latch;
+		}
+
+
+		switch (pixelId)
+		{
+		case 0:
+		{
+			uint8_t y_tile = floor(scanline / 8) + 2;
+			uint8_t x_tile = floor((cycle-1) / 8) + 2;
+			nametable_latch = readByte(0x2000 + y_tile * 32 + x_tile);
+		}
+			break;
+		case 2:
+			break;
+		case 4:
+			shifter_down_latch = readByte(nametable_latch * 16 + scanline%8);
+			break;
+		case 6:
+			shifter_up_latch = readByte(nametable_latch * 16 + 0x0008 + scanline % 8);
+			break;
+		}
+
+
+		uint8_t patternLo = ((shift_register_down << pixelId) & 0x8000) >> 16;
+		uint8_t patternHi = ((shift_register_up << pixelId) & 0x8000) >> 15;
+
+		PixelColor color = palleteLookup[patternHi | patternLo];
+		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+	}
 }
 
 void PPU::postRenderScanline()
@@ -463,6 +509,28 @@ void PPU::preRenderScanline()
 		status_reg.status.sprite_overflow = 0;
 		status_reg.status.vblank = 0;
 		trigger_nmi = false;
+	}
+	if (cycle >= 321 && cycle <= 336)
+	{
+		uint8_t pixelId = (cycle - 321) % 8;
+		switch (pixelId)
+		{
+		case 0:
+		{
+			uint8_t y_tile = floor(scanline / 8);
+			uint8_t x_tile = floor((cycle - 1) / 8);
+			nametable_latch = readByte(0x2000 + y_tile * 32 + x_tile );
+		}
+		break;
+		case 2:
+			break;
+		case 4:
+			shifter_down_latch = readByte(nametable_latch * 16 + scanline % 8);
+			break;
+		case 6:
+			shifter_up_latch = readByte(nametable_latch * 16 + 0x0008 + scanline % 8);
+			break;
+		}
 	}
 }
 
