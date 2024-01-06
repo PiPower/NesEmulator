@@ -457,11 +457,15 @@ void PPU::visibleScanline()
 
 			shift_register_down = (shift_register_down & 0x00FF) | ((uint16_t)shifter_down_latch << 8);
 			shift_register_up = (shift_register_up & 0x00FF) | ((uint16_t)shifter_up_latch << 8);
-		}
+
+			attribute_reg >>= 8;
+			attribute_reg = (attribute_reg & 0x00FF) | ((uint16_t)attribute_latch << 8);
+		}	
 
 
 		switch (pixelId)
 		{
+		// store nametable for next tile in latch
 		case 0:
 		{
 			uint8_t y_tile = floor(scanline / 8) + 2;
@@ -469,23 +473,37 @@ void PPU::visibleScanline()
 			nametable_latch = readByte(0x2000 + y_tile * 32 + x_tile);
 		}
 			break;
+		//  store attribute for next tiles in latch 
 		case 2:
-			attribute_latch = readByte(0x2000 + 0x03C0);
+		{
+			uint8_t y_tile = floor(scanline / 32);
+			uint8_t x_tile = floor((cycle - 1) / 32);
+			attribute_latch = readByte(0x2000 + 0x03C0 + y_tile * 8 + x_tile);
+		}
 			break;
+		//  store lo patteron for next tile in latch 
 		case 4:
 			shifter_down_latch = readByte(nametable_latch * 16 + scanline%8);
 			break;
+		//  store hi patteron for next tile in latch 
 		case 6:
 			shifter_up_latch = readByte(nametable_latch * 16 + 0x0008 + scanline % 8);
 			break;
 		}
 
+		uint8_t currentAtribute = attribute_reg & 0x00FF;
+		uint8_t y_atribute_tile = (uint8_t)floor(scanline / 16) % 2;
+		uint8_t x_atribute_tile = (uint8_t)floor((cycle - 1) / 16) % 2;
 
-		pixelId = 7 - pixelId;
+		uint8_t pallete = (currentAtribute << ((y_atribute_tile * 2 + x_atribute_tile) * 2 )) & 0x60;
+
+		pixelId = 7 - pixelId; //linear map 0-7 to 7-0 because bit for pixel 0 in given tile is 7th bit in register
 		uint8_t patternLo = (shift_register_down >> pixelId) & 1;
 		uint8_t patternHi = (shift_register_up >> pixelId) & 1;
 
-		PixelColor color = palleteLookup[patternHi | patternLo];
+		uint8_t index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
+
+		PixelColor color = palleteLookup[index];
 		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 	}
 }
@@ -523,6 +541,9 @@ void PPU::preRenderScanline()
 
 			shift_register_down = (shift_register_down & 0x00FF) | (shifter_down_latch << 8);
 			shift_register_up = (shift_register_up & 0x00FF) | (shifter_up_latch << 8);
+
+			attribute_reg >>= 8;
+			attribute_reg = (attribute_reg & 0x00FF) | ((uint16_t)attribute_latch << 8);
 		}
 
 		switch (pixelId)
@@ -535,6 +556,11 @@ void PPU::preRenderScanline()
 		}
 		break;
 		case 2:
+		{
+			uint8_t y_tile = floor(scanline / 32);
+			uint8_t x_tile = floor((cycle - 1) / 32);
+			attribute_latch = readByte(0x2000 + 0x03C0 + y_tile * 8 + x_tile);
+		}
 			break;
 		case 4:
 			shifter_down_latch = readByte(nametable_latch * 16 + scanline % 8);

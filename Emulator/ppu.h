@@ -40,8 +40,9 @@ private:
 	uint8_t x_scroll;
 	uint8_t y_scroll;
 	uint16_t internal_addr;
-	uint16_t shift_register_up;
-	uint16_t shift_register_down;
+	uint16_t shift_register_up;// lower 8 bits are for currently processed tile 
+	uint16_t shift_register_down; // lower 8 bits are for currently processed tile 
+	uint16_t attribute_reg; // lower 8 bits are for currently processed tile 
 	// latches for temporal data
 	uint8_t nametable_latch;
 	uint8_t shifter_up_latch;
