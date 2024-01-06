@@ -492,8 +492,8 @@ void PPU::visibleScanline()
 		}
 
 		uint8_t currentAtribute = attribute_reg & 0x00FF;
-		uint8_t y_atribute_tile = (uint8_t)floor(scanline / 16) % 2;
-		uint8_t x_atribute_tile = (uint8_t)floor((cycle - 1) / 16) % 2;
+		uint8_t y_atribute_tile = (uint8_t)floor(scanline / 16) % 2; // x coord of 2x2 tile within  4x4 tile
+		uint8_t x_atribute_tile = (uint8_t)floor((cycle - 1) / 16) % 2; // y coord of 2x2 tile within  4x4 tile
 
 		uint8_t pallete = (currentAtribute << ((y_atribute_tile * 2 + x_atribute_tile) * 2 )) & 0x60;
 

@@ -38,6 +38,18 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 			run_app = window.ProcessMessages() == 0;
 		}
 
+
+		cpu_emulator.pressA(window.IsKeyPressed('A'));
+		cpu_emulator.pressB(window.IsKeyPressed('S'));
+		cpu_emulator.pressSelect(window.IsKeyPressed('D'));
+		cpu_emulator.pressStart(window.IsKeyPressed(VK_SPACE));
+		cpu_emulator.pressUp(window.IsKeyPressed(VK_UP));
+		cpu_emulator.pressDown(window.IsKeyPressed(VK_DOWN));
+		cpu_emulator.pressLeft(window.IsKeyPressed(VK_LEFT));
+		cpu_emulator.pressRight(window.IsKeyPressed(VK_RIGHT));
+
+
+
 		ticks++;
 	}
 }

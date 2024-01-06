@@ -92,6 +92,47 @@ void CPU::nonMaskableInterrupt()
 	cycles = 8;
 }
 
+void CPU::pressA(bool pressed)
+{
+	controllerState |= pressed ? 0x80 : 0x00;
+}
+
+void CPU::pressB(bool pressed)
+{
+	controllerState |= pressed ? 0x40 : 0x00;
+}
+
+void CPU::pressSelect(bool pressed)
+{
+	controllerState |= pressed ? 0x20 : 0x00;
+}
+
+void CPU::pressStart(bool pressed)
+{
+	controllerState |= pressed ? 0x10 : 0x00;
+}
+
+void CPU::pressUp(bool pressed)
+{
+	controllerState |= pressed ? 0x08 : 0x00;
+}
+
+void CPU::pressDown(bool pressed)
+{
+	controllerState |= pressed ? 0x04 : 0x00;
+}
+
+void CPU::pressLeft(bool pressed)
+{
+	controllerState |= pressed ? 0x02 : 0x00;
+}
+
+void CPU::pressRight(bool pressed)
+{
+	controllerState |= pressed ? 0x01 : 0x00;
+}
+
+
 uint8_t CPU::readByte(uint16_t addr)
 {
 	if (addr >= 0 && addr <= 0x1FFF)
@@ -111,6 +152,16 @@ uint8_t CPU::readByte(uint16_t addr)
 			exit(-1);
 			break;
 		}
+	}
+	else if (addr >= 0x4016 && addr <= 0x4017)
+	{
+		uint8_t data = (controllerLatch[addr - 0x4016] & 0x80 ) > 0;
+		if (data > 0)
+		{
+			int x = 0;
+		}
+		controllerLatch[addr - 0x4016] <<= 1;
+		return data;
 	}
 	else if (addr >= 0x8000 && addr <= 0xFFFF)
 	{
@@ -151,6 +202,10 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 			exit(-1);
 			break;
 		}
+	}
+	else if (addr >= 0x4016 && addr <= 0x4017)
+	{
+		controllerLatch[addr - 0x4016] = controllerState;
 	}
 	else if (addr >= 0x8000 && addr <= 0xFFFF)
 	{

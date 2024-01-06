@@ -10,6 +10,15 @@ public:
 	void reset();
 	void clock();
 	void nonMaskableInterrupt();
+	//joystick constroll
+	void pressA(bool pressed);
+	void pressB(bool pressed);
+	void pressSelect(bool pressed);
+	void pressStart(bool pressed);
+	void pressUp(bool pressed);
+	void pressDown(bool pressed);
+	void pressLeft(bool pressed);
+	void pressRight(bool pressed);
 private:
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t data);
@@ -73,5 +82,7 @@ private:
 	static TableEntry instructionTable[0x10][0x10];
 	uint16_t cycles;
 	PPU* ppu;
+	uint8_t controllerLatch[2];
+	uint8_t controllerState;
 };
 
