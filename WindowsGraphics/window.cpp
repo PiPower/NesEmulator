@@ -44,15 +44,15 @@ int Window::ProcessMessages() noexcept
 {
 	MSG msg;
 
-	const auto old = last;
-	last = steady_clock::now();
-	const duration<float> frameTime = last - old;
-
-	int FPS = 1 / frameTime.count();
-	lol.clear();
-
-	lol = WindowName + L" FPS: " + to_wstring(FPS);
-	SetWindowText(hwnd, lol.c_str());
+	//const auto old = last;
+	//last = steady_clock::now();
+	//const duration<float> frameTime = last - old;
+	//
+	//int FPS = 1 / frameTime.count();
+	//lol.clear();
+	//
+	//lol = WindowName + L" FPS: " + to_wstring(FPS);
+	//SetWindowText(hwnd, lol.c_str());
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
 

@@ -11,6 +11,7 @@ public:
 	void clock();
 	void nonMaskableInterrupt();
 	//joystick constroll
+	void resetController();
 	void pressA(bool pressed);
 	void pressB(bool pressed);
 	void pressSelect(bool pressed);
@@ -49,6 +50,7 @@ private:
 	void STY(void* data);
 	void DEX(void* data);
 	void DEY(void* data);
+	void DEC(void* data);
 	void BNE(void* data);
 	void INX(void* data);
 	void INY(void* data);
