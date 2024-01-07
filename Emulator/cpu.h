@@ -28,12 +28,14 @@ private:
 	uint16_t IMM(void* data);
 	uint16_t ABS(void* data);
 	uint16_t REL(void* data);
+	uint16_t IND(void* data);
 	uint16_t IND_Y(void* data);
 	uint16_t X_IDX(void* data);
 	uint16_t ZPG(void* data);
 	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);
+	void SEC(void* data);
 	void CLD(void* data);
 	void CLC(void* data);
 	void LDX(void* data);
@@ -59,6 +61,9 @@ private:
 	void CMP(void* data);
 	void RTS(void* data);
 	void BEQ(void* data);
+	void BCC(void* data);
+	void BVS(void* data);
+	void BVC(void* data);
 	void PHA(void* data);
 	void LSRA(void* data);
 	void ROLA(void* data);
@@ -70,6 +75,9 @@ private:
 	void ADC(void* data);
 	void JMP(void* data);
 	void BCS(void* data);
+	void ASLA(void* data);
+	void NOP(void* data);
+	void BIT(void* data);
 private:
 	// registers
 	uint16_t ip;
