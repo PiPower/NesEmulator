@@ -45,6 +45,7 @@ private:
 	void TXA(void* data);
 	void TAX(void* data);
 	void TAY(void* data);
+	void TYA(void* data);
 	void TSX(void* data);
 	void LDA(void* data);
 	void LDY(void* data);

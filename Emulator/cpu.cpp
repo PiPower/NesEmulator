@@ -10,7 +10,7 @@ TableEntry CPU::instructionTable[0x10][0x10] = {
 /* 6 */	{ TableEntry{&CPU::RTS, nullptr, 6}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::PLA, nullptr, 4}, TableEntry{&CPU::ADC, &CPU::IMM, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{&CPU::JMP, &CPU::IND, 5}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
 /* 7 */	{ TableEntry{&CPU::BVS, &CPU::REL, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::SEI, nullptr, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
 /* 8 */	{ TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0},  TableEntry{&CPU::STA, &CPU::ZPG, 3}, TableEntry{&CPU::STX, &CPU::ZPG, 3}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::DEY, nullptr, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TXA, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{&CPU::STY, &CPU::ABS, 4}, TableEntry{&CPU::STA, &CPU::ABS, 4}, TableEntry{&CPU::STX, &CPU::ABS,4}, TableEntry{nullptr, nullptr, 0}},
-/* 9 */	{ TableEntry{&CPU::BCC, &CPU::REL, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TXS, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
+/* 9 */	{ TableEntry{&CPU::BCC, &CPU::REL, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TYA, nullptr, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TXS, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
 /* A */	{ TableEntry{&CPU::LDY, &CPU::IMM, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::LDX, &CPU::IMM, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::LDA, &CPU::ZPG, 3}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TAY, nullptr,2}, TableEntry{&CPU::LDA, &CPU::IMM, 2}, TableEntry{&CPU::TAX, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{&CPU::LDY, &CPU::ABS, 4}, TableEntry{&CPU::LDA, &CPU::ABS, 4}, TableEntry{&CPU::LDX, &CPU::ABS, 4}, TableEntry{nullptr, nullptr, 0}},
 /* B */	{ TableEntry{&CPU::BCS,  &CPU::REL, 2}, TableEntry{&CPU::LDA, &CPU::IND_Y, 5}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::CLV, nullptr, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::TSX, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::LDA, &CPU::X_IDX, 4}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
 /* C */	{ TableEntry{&CPU::CPY, &CPU::IMM, 2}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::CMP, &CPU::ZPG, 3}, TableEntry{&CPU::DEC, &CPU::ZPG, 5}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::INY, nullptr, 2}, TableEntry{&CPU::CMP, &CPU::IMM, 2}, TableEntry{&CPU::DEX, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0}},
@@ -366,7 +366,14 @@ void CPU::TAY(void* data)
 {
 	y_reg = accumulator;
 	status_reg.FLAGS.zero = y_reg == 0 ? 1 : 0;
-	status_reg.FLAGS.negative = (x_reg & 0x80) > 0? 1 : 0;
+	status_reg.FLAGS.negative = (y_reg & 0x80) > 0? 1 : 0;
+}
+
+void CPU::TYA(void* data)
+{
+	accumulator = y_reg;
+	status_reg.FLAGS.zero = accumulator == 0 ? 1 : 0;
+	status_reg.FLAGS.negative = (accumulator & 0x80) > 0 ? 1 : 0;
 }
 
 void CPU::TSX(void* data)
