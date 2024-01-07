@@ -39,11 +39,13 @@ private:
 	void SED(void* data);
 	void CLD(void* data);
 	void CLC(void* data);
+	void CLV(void* data);
 	void LDX(void* data);
 	void TXS(void* data);
 	void TXA(void* data);
 	void TAX(void* data);
 	void TAY(void* data);
+	void TSX(void* data);
 	void LDA(void* data);
 	void LDY(void* data);
 	void BPL(void* data);
@@ -59,6 +61,7 @@ private:
 	void INY(void* data);
 	void INC(void* data);
 	void CPX(void* data);
+	void CPY(void* data);
 	void CMP(void* data);
 	void RTS(void* data);
 	void BEQ(void* data);
