@@ -36,6 +36,7 @@ private:
 	void JSR(void* data);
 	void SEI(void* data);
 	void SEC(void* data);
+	void SED(void* data);
 	void CLD(void* data);
 	void CLC(void* data);
 	void LDX(void* data);
@@ -64,7 +65,9 @@ private:
 	void BCC(void* data);
 	void BVS(void* data);
 	void BVC(void* data);
+	void BMI(void* data);
 	void PHA(void* data);
+	void PHP(void* data);
 	void LSRA(void* data);
 	void ROLA(void* data);
 	void ROL(void* data);
@@ -72,6 +75,7 @@ private:
 	void AND(void* data);
 	void ORA(void* data);
 	void PLA(void* data);
+	void PLP(void* data);
 	void ADC(void* data);
 	void JMP(void* data);
 	void BCS(void* data);
