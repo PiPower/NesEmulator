@@ -8,10 +8,11 @@ public:
 	NesFile(std::string path);
 	uint8_t getNametableMirroring();
 	uint8_t readByteCPU(uint16_t addr);
+	void writeByteCPU(uint16_t addr, uint8_t data);
 	uint8_t readBytePPU(uint16_t addr);
 private:
-	uint16_t readMirrorCPU000(uint16_t addr);
-	uint16_t readMirrorPPU000(uint16_t addr);
+	uint16_t MirrorCPU000(uint16_t addr);
+	uint16_t MirrorPPU000(uint16_t addr);
 private:
 	unsigned char PGR_ROM_size;
 	unsigned char CHR_ROM_size;

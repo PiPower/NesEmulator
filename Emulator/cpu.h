@@ -30,6 +30,7 @@ private:
 	uint16_t REL(void* data);
 	uint16_t IND(void* data);
 	uint16_t IND_Y(void* data);
+	uint16_t IND_X(void* data);
 	uint16_t X_IDX(void* data);
 	uint16_t ZPG(void* data);
 	// instruction types
@@ -83,6 +84,7 @@ private:
 	void PLA(void* data);
 	void PLP(void* data);
 	void ADC(void* data);
+	void SBC(void* data);
 	void JMP(void* data);
 	void BCS(void* data);
 	void ASLA(void* data);

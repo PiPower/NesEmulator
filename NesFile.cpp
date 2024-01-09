@@ -44,8 +44,8 @@ NesFile::NesFile(std::string path)
 	CHR_ROM = new uint8_t[8192 * CHR_ROM_size];
 	file.read((char*)CHR_ROM, 8192 * CHR_ROM_size);
 
-	mapperCPU = &NesFile::readMirrorCPU000;
-	mapperPPU = &NesFile::readMirrorPPU000;
+	mapperCPU = &NesFile::MirrorCPU000;
+	mapperPPU = &NesFile::MirrorPPU000;
 }
 
 uint8_t NesFile::getNametableMirroring()
@@ -59,18 +59,25 @@ uint8_t NesFile::readByteCPU(uint16_t addr)
 	return PGR_ROM[trasnlated_addr];
 }
 
+void NesFile::writeByteCPU(uint16_t addr, uint8_t data)
+{
+	uint16_t trasnlated_addr = (this->*mapperCPU)(addr);
+	PGR_ROM[trasnlated_addr] = data;
+}
+
 uint8_t NesFile::readBytePPU(uint16_t addr)
 {
 	uint16_t trasnlated_addr = (this->*mapperPPU)(addr);
 	return CHR_ROM[trasnlated_addr];
 }
 
-uint16_t NesFile::readMirrorCPU000(uint16_t addr)
+uint16_t NesFile::MirrorCPU000(uint16_t addr)
 {
 	return addr & (PGR_ROM_size > 1 ? 0x7FFF : 0x3FFF);
 }
 
-uint16_t NesFile::readMirrorPPU000(uint16_t addr)
+
+uint16_t NesFile::MirrorPPU000(uint16_t addr)
 {
 	return addr;
 }
