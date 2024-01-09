@@ -74,6 +74,7 @@ private:
 	void PHA(void* data);
 	void PHP(void* data);
 	void LSRA(void* data);
+	void LSR(void* data);
 	void ROLA(void* data);
 	void ROL(void* data);
 	void RORA(void* data);
@@ -88,6 +89,7 @@ private:
 	void JMP(void* data);
 	void BCS(void* data);
 	void ASLA(void* data);
+	void ASL(void* data);
 	void NOP(void* data);
 	void BIT(void* data);
 private:
