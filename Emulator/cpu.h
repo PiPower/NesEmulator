@@ -27,6 +27,7 @@ private:
 	// memory loading
 	uint16_t IMM(void* data);
 	uint16_t ABS(void* data);
+	uint16_t ABS_Y(void* data);
 	uint16_t REL(void* data);
 	uint16_t IND(void* data);
 	uint16_t IND_Y(void* data);
