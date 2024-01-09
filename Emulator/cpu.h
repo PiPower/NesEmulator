@@ -75,6 +75,8 @@ private:
 	void LSRA(void* data);
 	void ROLA(void* data);
 	void ROL(void* data);
+	void RORA(void* data);
+	void ROR(void* data);
 	void EOR(void* data);
 	void AND(void* data);
 	void ORA(void* data);

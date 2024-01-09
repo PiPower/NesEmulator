@@ -530,6 +530,7 @@ void PPU::preRenderScanline()
 		status_reg.status.vblank = 0;
 		trigger_nmi = false;
 	}
+	//fetch data for first 16 pixels
 	if (cycle >= 321 && cycle <= 337)
 	{
 		uint8_t pixelId = (cycle - 321) % 8;
