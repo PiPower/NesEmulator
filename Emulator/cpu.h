@@ -35,6 +35,8 @@ private:
 	uint16_t IND_X(void* data);
 	uint16_t X_IDX(void* data);
 	uint16_t ZPG(void* data);
+	uint16_t ZPG_X(void* data);
+	uint16_t ZPG_Y(void* data);
 	// instruction types
 	void JSR(void* data);
 	void SEI(void* data);
