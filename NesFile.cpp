@@ -44,8 +44,21 @@ NesFile::NesFile(std::string path)
 	CHR_ROM = new uint8_t[8192 * CHR_ROM_size];
 	file.read((char*)CHR_ROM, 8192 * CHR_ROM_size);
 
-	mapperCPU = &NesFile::MirrorCPU000;
-	mapperPPU = &NesFile::MirrorPPU000;
+
+	switch ( (Flags7 & 0xF0)  | ((Flags6 & 0xF0) >> 4 ) )
+	{
+	case 0:
+		ptrReadByteCPU = &NesFile::readMirrorCPU000;
+		ptrReadBytePPU = &NesFile::readMirrorPPU000;
+		ptrWriteByteCPU = &NesFile::writeByteMirrorCPU000;
+		ptrWriteBytePPU = &NesFile::writeByteMirrorPPU000;
+	case 3:
+		ptrReadByteCPU = &NesFile::readMirrorCPU003;
+		ptrReadBytePPU = &NesFile::readMirrorPPU003;
+		ptrWriteByteCPU = &NesFile::writeByteMirrorCPU003;
+		ptrWriteBytePPU = &NesFile::writeByteMirrorPPU003;
+		break;
+	}
 }
 
 uint8_t NesFile::getNametableMirroring()
@@ -55,29 +68,62 @@ uint8_t NesFile::getNametableMirroring()
 
 uint8_t NesFile::readByteCPU(uint16_t addr)
 {
-	uint16_t trasnlated_addr = (this->*mapperCPU)(addr);
-	return PGR_ROM[trasnlated_addr];
+	return (this->*ptrReadByteCPU)(addr);
 }
 
 void NesFile::writeByteCPU(uint16_t addr, uint8_t data)
 {
-	uint16_t trasnlated_addr = (this->*mapperCPU)(addr);
-	PGR_ROM[trasnlated_addr] = data;
+	(this->*ptrWriteByteCPU)(addr, data);
 }
 
 uint8_t NesFile::readBytePPU(uint16_t addr)
 {
-	uint16_t trasnlated_addr = (this->*mapperPPU)(addr);
-	return CHR_ROM[trasnlated_addr];
+	return (this->*ptrReadBytePPU)(addr);
 }
 
-uint16_t NesFile::MirrorCPU000(uint16_t addr)
+void NesFile::writeBytePPU(uint16_t addr, uint8_t data)
 {
-	return addr & (PGR_ROM_size > 1 ? 0x7FFF : 0x3FFF);
+	(this->*ptrWriteBytePPU)(addr, data);
 }
 
-
-uint16_t NesFile::MirrorPPU000(uint16_t addr)
+uint16_t NesFile::readMirrorCPU000(uint16_t addr)
 {
-	return addr;
+	uint16_t trasnlated_addr = addr& (PGR_ROM_size > 1 ? 0x7FFF : 0x3FFF);
+	return PGR_ROM[trasnlated_addr];
 }
+
+uint16_t NesFile::readMirrorPPU000(uint16_t addr)
+{
+	return CHR_ROM[addr];
+}
+
+void NesFile::writeByteMirrorCPU000(uint16_t addr, uint8_t data)
+{
+	uint16_t trasnlated_addr = addr & (PGR_ROM_size > 1 ? 0x7FFF : 0x3FFF);
+	PGR_ROM[trasnlated_addr] = data;
+}
+
+void NesFile::writeByteMirrorPPU000(uint16_t addr, uint8_t data)
+{
+	CHR_ROM[addr] = data;
+}
+
+uint16_t NesFile::readMirrorCPU003(uint16_t addr)
+{
+	return 0;
+}
+
+uint16_t NesFile::readMirrorPPU003(uint16_t addr)
+{
+	return 0;
+}
+
+void NesFile::writeByteMirrorCPU003(uint16_t addr, uint8_t data)
+{
+}
+
+void NesFile::writeByteMirrorPPU003(uint16_t addr, uint8_t data)
+{
+}
+
+

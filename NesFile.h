@@ -10,10 +10,20 @@ public:
 	uint8_t readByteCPU(uint16_t addr);
 	void writeByteCPU(uint16_t addr, uint8_t data);
 	uint8_t readBytePPU(uint16_t addr);
+	void writeBytePPU(uint16_t addr, uint8_t data);
 private:
-	uint16_t MirrorCPU000(uint16_t addr);
-	uint16_t MirrorPPU000(uint16_t addr);
+	// mirror 000
+	uint16_t readMirrorCPU000(uint16_t addr);
+	uint16_t readMirrorPPU000(uint16_t addr);
+	void writeByteMirrorCPU000(uint16_t addr, uint8_t data);
+	void writeByteMirrorPPU000(uint16_t addr, uint8_t data);
+	// mirror 003
+	uint16_t readMirrorCPU003(uint16_t addr);
+	uint16_t readMirrorPPU003(uint16_t addr);
+	void writeByteMirrorCPU003(uint16_t addr, uint8_t data);
+	void writeByteMirrorPPU003(uint16_t addr, uint8_t data);
 private:
+	unsigned char nPRGBanks;
 	unsigned char PGR_ROM_size;
 	unsigned char CHR_ROM_size;
 	char Flags6;
@@ -25,7 +35,9 @@ private:
 	uint8_t* PGR_ROM;
 	uint8_t* CHR_ROM;
 	char* Trainer;
-	uint16_t(NesFile::* mapperCPU)(uint16_t addr);
-	uint16_t(NesFile::* mapperPPU)(uint16_t addr);
+	uint16_t(NesFile::* ptrReadByteCPU)(uint16_t addr);
+	uint16_t(NesFile::* ptrReadBytePPU)(uint16_t addr);
+	void (NesFile::* ptrWriteByteCPU)(uint16_t addr, uint8_t data);
+	void (NesFile::* ptrWriteBytePPU)(uint16_t addr, uint8_t data);
 };
 
