@@ -22,6 +22,7 @@ public:
 	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
+	void prefetch();
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
 	void initRenderingResources(HWND hwnd);
