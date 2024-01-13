@@ -34,6 +34,7 @@ private:
 	char Mapper;
 	uint8_t* PGR_ROM;
 	uint8_t* CHR_ROM;
+	uint8_t nCHRBankSelect ;
 	char* Trainer;
 	uint16_t(NesFile::* ptrReadByteCPU)(uint16_t addr);
 	uint16_t(NesFile::* ptrReadBytePPU)(uint16_t addr);

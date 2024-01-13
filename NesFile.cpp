@@ -5,6 +5,7 @@
 using namespace std;
 
 NesFile::NesFile(std::string path)
+	:nCHRBankSelect(0)
 {
 	fstream file(path.c_str(), ios::in | ios::binary);
 	if (!file.good())
@@ -58,6 +59,8 @@ NesFile::NesFile(std::string path)
 		ptrWriteByteCPU = &NesFile::writeByteMirrorCPU003;
 		ptrWriteBytePPU = &NesFile::writeByteMirrorPPU003;
 		break;
+	default:
+		exit(-1);
 	}
 }
 
@@ -110,16 +113,19 @@ void NesFile::writeByteMirrorPPU000(uint16_t addr, uint8_t data)
 
 uint16_t NesFile::readMirrorCPU003(uint16_t addr)
 {
-	return 0;
+	uint16_t trasnlated_addr = addr & (PGR_ROM_size > 1 ? 0x7FFF : 0x3FFF);
+	return PGR_ROM[trasnlated_addr];
 }
 
 uint16_t NesFile::readMirrorPPU003(uint16_t addr)
 {
-	return 0;
+	uint16_t mapped_addr = nCHRBankSelect * 0x2000 + addr;
+	return CHR_ROM[mapped_addr];
 }
 
 void NesFile::writeByteMirrorCPU003(uint16_t addr, uint8_t data)
 {
+	nCHRBankSelect = data & 0x03; 
 }
 
 void NesFile::writeByteMirrorPPU003(uint16_t addr, uint8_t data)
