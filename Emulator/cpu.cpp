@@ -1,5 +1,7 @@
 #include "cpu.h"
 // fix additional cycle added to (sta, abs_y) when page boundary is crossed
+// fix additional cycle added to abs_X  when page boundary is crossed for some instructions
+
 TableEntry CPU::instructionTable[0x10][0x10] = {
 /* 0 */	{ TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::ORA, &CPU::IND_X, 6}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::ORA, &CPU::ZPG, 3}, TableEntry{&CPU::ASL, &CPU::ZPG, 5}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::PHP, nullptr, 3}, TableEntry{&CPU::ORA, &CPU::IMM, 2}, TableEntry{&CPU::ASLA, nullptr, 2}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::ORA, &CPU::ABS,4}, TableEntry{&CPU::ASL, &CPU::ABS,6}, TableEntry{nullptr, nullptr, 0}},
 /* 1 */	{ TableEntry{&CPU::BPL, &CPU::REL, 2}, TableEntry{&CPU::ORA, &CPU::IND_Y, 5}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::ORA, &CPU::ZPG_X, 4}, TableEntry{&CPU::ASL, &CPU::ZPG_X, 6}, TableEntry{nullptr, nullptr, 0}, TableEntry{&CPU::CLC, nullptr, 2}, TableEntry{&CPU::ORA, &CPU::ABS_Y, 4}, TableEntry{nullptr, nullptr, 0}, TableEntry{nullptr, nullptr, 0},  TableEntry{nullptr, nullptr, 0}, TableEntry{ &CPU::ORA, &CPU::ABS_X,4}, TableEntry{&CPU::ASL, &CPU::ABS_X,7}, TableEntry{nullptr, nullptr, 0}},
@@ -162,10 +164,6 @@ uint8_t CPU::readByte(uint16_t addr)
 	else if (addr >= 0x4016 && addr <= 0x4017)
 	{
 		uint8_t data = (controllerLatch[addr - 0x4016] & 0x80 ) > 0;
-		if (data != 0)
-		{
-			int x = 2;
-		}
 		controllerLatch[addr - 0x4016] <<= 1;
 		return data;
 	}
@@ -205,7 +203,7 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 			ppu->writeDataRegister(data);
 			break;
 		default:
-			exit(-1);
+			//exit(-1);
 			break;
 		}
 	}

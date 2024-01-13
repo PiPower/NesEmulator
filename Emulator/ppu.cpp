@@ -6,6 +6,7 @@
 #define PATTERN_TABLE_OFFSET_Y 0
 #define RENDER_PATTERN_TABLE
 //#define RENDER_NAME_TABLE
+
 PPU::PPU(HWND hwnd, NesFile* cartridge)
 	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
 {
@@ -96,6 +97,24 @@ void PPU::writeControllRegister(uint8_t data)
 {
 	uint8_t nmi_bit = controller.flags.trigger_nmi;
 	controller.Byte = data;
+
+	switch (controller.flags.base_addr)
+	{
+	case 0:
+		nametable_base_addr = 0x2000;
+		break;
+	case 1:
+		nametable_base_addr = 0x2400;
+		break;
+	case 2:
+		nametable_base_addr = 0x2800;
+		break;
+	case 3:
+		nametable_base_addr = 0x2C00;
+		break;
+	}
+	pattern_base_addr = controller.flags.background_pt_addr ? 0x1000 : 0x0 ;
+
 	if (status_reg.status.vblank > 0 && nmi_bit == 0 && controller.flags.trigger_nmi > 0)
 	{
 		trigger_nmi = true;
@@ -196,7 +215,7 @@ void PPU::RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset)
 					uint8_t index =( (hi & 0x80) >> 6) |( (lo & 0x80) >> 7 );
 					hi <<= 1;
 					lo <<= 1;
-
+				
 					drawTile(x * 8 + i, y * 8 + j,PATTERN_TILE_SIZE ,palleteLookup[index].R,
 						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, x_offset, y_offset);
 
@@ -215,7 +234,7 @@ void PPU::RenderRawNametable(uint8_t i)
 	{
 		for (uint8_t x = 0; x < 32; x++)
 		{
-			uint8_t patternTableIndex =  readByte(0x2000 + y * 32 + x);
+			uint8_t patternTableIndex =  readByte(0x2000  + y * 32 + x);
 			uint16_t patternTableAddr = patternTableIndex * 16;
 
 			for (uint8_t j = 0; j < 8; j++)
@@ -224,12 +243,12 @@ void PPU::RenderRawNametable(uint8_t i)
 				uint8_t hi = readByte(0x0008 + patternTableAddr);
 				for (uint8_t i = 0; i < 8; i++)
 				{
-					uint8_t index = ((hi & 0x80) >> 6) | ((lo & 0x80) >> 7);
+					uint8_t index = ((hi & 0x80) >> 6) | ((lo & 0x80) >> 7) + 1;
 					hi <<= 1;
 					lo <<= 1;
 
-					drawTile(x * 8 + i, y * 8 + j, 2, palleteLookup[index].R,
-						palleteLookup[index].G, palleteLookup[index].B, palleteLookup[index].A, 0, 0);
+					drawTile(x * 8 + i, y * 8 + j, 2, patternTableIndex,
+						patternTableIndex, patternTableIndex,255, 0, 0);
 
 				}
 				patternTableAddr++;
@@ -330,7 +349,7 @@ uint8_t PPU::readByte(uint16_t addr)
 
 			return nametableRAM[nametable_addr];
 		}
-		if (cartridge->getNametableMirroring() == VERTICAL) //horizontal
+		if (cartridge->getNametableMirroring() == VERTICAL) //vertical
 		{
 			if (nametable_addr >= 0x0800) nametable_addr -= 0x0800;
 			return nametableRAM[nametable_addr];
@@ -340,9 +359,9 @@ uint8_t PPU::readByte(uint16_t addr)
 	{
 		addr = addr & 0x001F;
 		if (addr == 0x0010) addr = 0x0000;
-		if (addr == 0x0014) addr = 0x0004;
-		if (addr == 0x0018) addr = 0x0008;
-		if (addr == 0x001C) addr = 0x000C;
+		else if (addr == 0x0014) addr = 0x0004;
+		else if (addr == 0x0018) addr = 0x0008;
+		else if (addr == 0x001C) addr = 0x000C;
 		return palleteRAM[addr];
 	}
 }
@@ -445,10 +464,9 @@ void PPU::visibleScanline()
 		return;
 	}
 
-	if (cycle >= 1 && cycle < 257)
+	if (cycle >= 1 && cycle < 257 )
 	{
 		uint8_t pixelId = (cycle - 1) % 8;
-
 
 		if (pixelId == 0 && cycle > 1)
 		{
@@ -462,49 +480,109 @@ void PPU::visibleScanline()
 			attribute_reg = (attribute_reg & 0x00FF) | ((uint16_t)attribute_latch << 8);
 		}	
 
-
+		if (scanline > 92 && cycle > 78)
+		{
+			bool stop = true;
+			if (stop) goto a;
+			
+			for (int y = 0; y < 8; y++)
+			{
+				for (int x = 0; x< 8; x++)
+				{
+					wstring tile = to_wstring(readByte(nametable_base_addr + 0x03C0 + y * 8 + x)) + L" ";
+					OutputDebugString(tile.c_str());
+				}
+				OutputDebugString(L"\n");
+			}
+		}
+		a:
 		switch (pixelId)
 		{
 		// store nametable for next tile in latch
 		case 0:
 		{
-			uint8_t y_tile = floor(scanline / 8) + 2;
-			uint8_t x_tile = floor((cycle-1) / 8) + 2;
-			nametable_latch = readByte(0x2000 + y_tile * 32 + x_tile);
+			uint8_t y_tile = floor(scanline / 8);
+			uint8_t x_tile = floor((cycle-1 + 16) / 8);
+			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile);
+
 		}
 			break;
 		//  store attribute for next tiles in latch 
 		case 2:
 		{
 			uint8_t y_tile = floor(scanline / 32);
-			uint8_t x_tile = floor((cycle - 1) / 32);
-			attribute_latch = readByte(0x2000 + 0x03C0 + y_tile * 8 + x_tile);
+			uint8_t x_tile = floor((cycle - 1 + 16) / 32);
+			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
 		}
 			break;
-		//  store lo patteron for next tile in latch 
+		//  store lo patter on for next tile in latch 
 		case 4:
-			shifter_down_latch = readByte(nametable_latch * 16 + scanline%8);
+			shifter_down_latch = readByte(pattern_base_addr +  nametable_latch * 16 + scanline%8);
 			break;
-		//  store hi patteron for next tile in latch 
+		//  store hi patter on for next tile in latch 
 		case 6:
-			shifter_up_latch = readByte(nametable_latch * 16 + 0x0008 + scanline % 8);
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
 			break;
 		}
+
 
 		uint8_t currentAtribute = attribute_reg & 0x00FF;
 		uint8_t y_atribute_tile = (uint8_t)floor(scanline / 16) % 2; // x coord of 2x2 tile within  4x4 tile
 		uint8_t x_atribute_tile = (uint8_t)floor((cycle - 1) / 16) % 2; // y coord of 2x2 tile within  4x4 tile
 
-		uint8_t pallete = (currentAtribute << ((y_atribute_tile * 2 + x_atribute_tile) * 2 )) & 0x60;
+		uint8_t pallete = (currentAtribute >> ((y_atribute_tile * 4 + x_atribute_tile *2))) & 0x03;
 
 		pixelId = 7 - pixelId; //linear map 0-7 to 7-0 because bit for pixel 0 in given tile is 7th bit in register
-		uint8_t patternLo = (shift_register_down >> pixelId) & 1;
-		uint8_t patternHi = (shift_register_up >> pixelId) & 1;
+		uint8_t patternLo = (shift_register_down >> pixelId) & 0x1;
+		uint8_t patternHi = (shift_register_up >> pixelId) & 0x1;
 
 		uint8_t index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
 
 		PixelColor color = palleteLookup[index];
 		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+	}
+
+	//fetch data for first 16 pixels
+	if (cycle >= 321 && cycle <= 337)
+	{
+		uint8_t pixelId = (cycle - 321) % 8;
+
+		if (pixelId == 0 && cycle > 321)
+		{
+			shift_register_down >>= 8;
+			shift_register_up >>= 8;
+
+			shift_register_down = (shift_register_down & 0x00FF) | (shifter_down_latch << 8);
+			shift_register_up = (shift_register_up & 0x00FF) | (shifter_up_latch << 8);
+
+			attribute_reg >>= 8;
+			attribute_reg = (attribute_reg & 0x00FF) | ((uint16_t)attribute_latch << 8);
+		}
+
+		switch (pixelId)
+		{
+		case 0:
+		{
+			uint8_t y_tile = floor((scanline + 1) / 8);
+			uint8_t x_tile = floor((cycle - 321) / 8);
+			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile);
+
+		}
+		break;
+		case 2:
+		{
+			uint8_t y_tile = floor((scanline + 1) / 32);
+			uint8_t x_tile = floor((cycle - 321) / 32);
+			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
+		}
+		break;
+		case 4:
+			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + scanline % 8);
+			break;
+		case 6:
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
+			break;
+		}
 	}
 }
 
@@ -551,23 +629,24 @@ void PPU::preRenderScanline()
 		{
 		case 0:
 		{
-			uint8_t y_tile = floor(scanline / 8);
-			uint8_t x_tile = floor((cycle - 1) / 8);
-			nametable_latch = readByte(0x2000 + y_tile * 32 + x_tile );
+			uint8_t y_tile = 0;
+			uint8_t x_tile = floor((cycle - 321) / 8);
+			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile );
+
 		}
 		break;
 		case 2:
 		{
-			uint8_t y_tile = floor(scanline / 32);
-			uint8_t x_tile = floor((cycle - 1) / 32);
-			attribute_latch = readByte(0x2000 + 0x03C0 + y_tile * 8 + x_tile);
+			uint8_t y_tile = 0;
+			uint8_t x_tile = floor((cycle - 321) / 32);
+			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
 		}
 			break;
 		case 4:
-			shifter_down_latch = readByte(nametable_latch * 16 + scanline % 8);
+			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + scanline % 8);
 			break;
 		case 6:
-			shifter_up_latch = readByte(nametable_latch * 16 + 0x0008 + scanline % 8);
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
 			break;
 		}
 	}

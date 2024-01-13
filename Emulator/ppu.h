@@ -49,6 +49,8 @@ private:
 	uint8_t shifter_down_latch;
 	uint8_t attribute_latch;
 	// internal data
+	uint16_t nametable_base_addr;
+	uint16_t pattern_base_addr;
 	bool trigger_nmi;
 	UINT scanline;
 	UINT cycle;
