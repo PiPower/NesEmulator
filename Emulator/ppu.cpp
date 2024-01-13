@@ -335,7 +335,6 @@ bool PPU::triggerNMI()
 void PPU::prefetch()
 {
 	//fetch data for first 16 pixels
-	//fetch data for first 16 pixels
 	if (cycle >= 321 && cycle <= 337)
 	{
 		uint8_t pixelId = (cycle - 321) % 8;
@@ -417,8 +416,7 @@ void PPU::writeByte(uint16_t addr, uint8_t data)
 {
 	if (addr >= 0x0000 && addr <= 0x1FFF)
 	{
-		OutputDebugStringW(L"Pattern table writes not supported \n");
-		exit(-1);
+		cartridge->writeBytePPU(addr, data);
 	}
 	if (addr >= 0x2000 && addr <= 0x3EFF)
 	{
@@ -599,7 +597,10 @@ void PPU::preRenderScanline()
 		status_reg.status.vblank = 0;
 		trigger_nmi = false;
 	}
+	UINT scanlineBuffer = scanline;
+	scanline = 0;
 	prefetch();
+	scanline = scanlineBuffer;
 }
 
 void PPU::drawTile(UINT x, UINT y, UINT  tile_size, UCHAR R, UCHAR G, UCHAR B, UCHAR A, UINT tile_offset_x, UINT tile_offset_y)
