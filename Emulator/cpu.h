@@ -10,6 +10,7 @@ public:
 	void reset();
 	void clock();
 	void nonMaskableInterrupt();
+	void handleDMA(UINT systemClock);
 	//joystick constroll
 	void resetController();
 	void pressA(bool pressed);
@@ -112,5 +113,6 @@ private:
 	PPU* ppu;
 	uint8_t controllerLatch[2];
 	uint8_t controllerState;
+	bool dma_cycle_aligned;
 };
 

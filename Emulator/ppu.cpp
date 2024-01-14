@@ -118,6 +118,7 @@ void PPU::writeOAMaddrRegister(uint8_t data)
 void PPU::writeOAMdataRegister(uint8_t data)
 {
 	OAMtable[OAMaddr] = data;
+	OAMaddr++;
 }
 
 void PPU::writeControllRegister(uint8_t data)
@@ -351,7 +352,7 @@ void PPU::reset()
 	status_reg.status.vblank = 1;
 	status_reg.status.sprite_0_hit = 1;
 
-
+	trigger_dma = false;
 }
 
 bool PPU::triggerNMI()
@@ -359,6 +360,27 @@ bool PPU::triggerNMI()
 	bool nmiBuff = trigger_nmi;
 	trigger_nmi = false;
 	return nmiBuff;
+}
+
+bool PPU::isDmaTriggered()
+{
+	return trigger_dma;
+}
+
+uint8_t PPU::getDmaPage()
+{
+	return dma_page;
+}
+
+void PPU::startDMA(uint8_t page)
+{
+	trigger_dma = true;
+	dma_page = page;
+}
+
+void PPU::stopDMA()
+{
+	trigger_dma = false;
 }
 
 void PPU::prefetch()

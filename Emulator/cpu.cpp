@@ -34,6 +34,7 @@ CPU::CPU(NesFile* file, PPU* ppu)
 
 void CPU::reset()
 {
+	dma_cycle_aligned = false;
 	ip = 0xFFFC;
 	uint16_t lo = readByte(ip);
 	uint16_t hi = readByte(++ip);
@@ -93,6 +94,36 @@ void CPU::nonMaskableInterrupt()
 	ip = lo | hi << 8;
 
 	cycles = 8;
+}
+
+void CPU::handleDMA(UINT systemClock)
+{
+	if (!dma_cycle_aligned && (systemClock % 2 == 1))
+	{
+		dma_cycle_aligned = true;
+		return;
+	}
+	else if (!dma_cycle_aligned) return;
+
+	static uint8_t dma_data;
+	static uint16_t dma_addr = 0;
+	if (systemClock % 2 == 0)
+	{
+		dma_data = readByte(ppu->getDmaPage() << 8 | (dma_addr& 0x00FF) );
+		dma_addr++;
+	}
+	else
+	{
+		ppu->writeOAMdataRegister(dma_data);
+	}
+
+	if ((dma_addr & 0xFF00) > 0)
+	{
+		dma_addr = 0;
+		ppu->stopDMA();
+	}
+
+
 }
 
 void CPU::resetController()
@@ -221,7 +252,7 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 	}
 	else if (addr == 0x4014)
 	{
-		
+		ppu->startDMA(data);
 	}
 	else if (addr >= 0x4016 && addr <= 0x4017)
 	{

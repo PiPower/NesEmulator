@@ -23,6 +23,10 @@ public:
 	void clock();
 	void reset();
 	bool triggerNMI();
+	bool isDmaTriggered();
+	uint8_t getDmaPage();
+	void startDMA(uint8_t page);
+	void stopDMA();
 	// graphics function
 	void render();
 	void writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A);
@@ -58,13 +62,17 @@ private:
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
 	// internal data
+	uint8_t dma_page;
 	uint8_t OAMaddr;
 	uint16_t nametable_base_addr;
 	uint16_t pattern_base_addr;
 	bool trigger_nmi;
+	bool trigger_dma;
 	UINT scanline;
 	UINT cycle;
+public:
 	uint8_t* OAMtable;
+private:
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;

@@ -14,9 +14,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 	NesFile game(filename);
 	PPU ppu_emulator(window.GetWindowHWND(), &game);
 	CPU cpu_emulator(&game, &ppu_emulator);
-
 	UINT ticks = 0;
-	bool run_app = true;
 	while (window.ProcessMessages() == 0)
 	{
 		ppu_emulator.clock();
@@ -34,8 +32,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
 			cpu_emulator.pressLeft(window.IsKeyPressed(VK_LEFT));
 			cpu_emulator.pressRight(window.IsKeyPressed(VK_RIGHT));
 
-
-			cpu_emulator.clock();
+			if (ppu_emulator.isDmaTriggered())
+			{
+				cpu_emulator.handleDMA(ticks);
+			}
+			else
+			{
+				cpu_emulator.clock();
+			}
 		}
 
 		if (ppu_emulator.triggerNMI())
