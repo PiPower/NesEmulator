@@ -14,6 +14,7 @@ PPU::PPU(HWND hwnd, NesFile* cartridge)
 	reset();
 	nametableRAM = new uint8_t[0x0800];
 	palleteRAM = new  uint8_t[0x20];
+	OAMtable = new uint8_t[64 * 4];;
 
 	palleteLookup = new PixelColor[0x40];
 	palleteLookup[0x00] = PixelColor{84, 84, 84, 255};
@@ -102,6 +103,21 @@ uint8_t PPU::readDataRegister()
 
 	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
 	return data;
+}
+
+uint8_t PPU::readOAMdataRegister()
+{
+	return OAMtable[OAMaddr];
+}
+
+void PPU::writeOAMaddrRegister(uint8_t data)
+{
+	OAMaddr = data;
+}
+
+void PPU::writeOAMdataRegister(uint8_t data)
+{
+	OAMtable[OAMaddr] = data;
 }
 
 void PPU::writeControllRegister(uint8_t data)

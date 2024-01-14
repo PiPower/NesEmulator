@@ -7,13 +7,19 @@ class PPU : public DeviceResources
 public:
 	//emulator functions
 	PPU(HWND hwnd, NesFile* cartridge);
+	// reading from registers
 	uint8_t readStatusRegister();
 	uint8_t readDataRegister();
+	uint8_t readOAMdataRegister();
+	//writing to registers
+	void writeOAMaddrRegister(uint8_t data);
+	void writeOAMdataRegister(uint8_t data);
 	void writeControllRegister(uint8_t data);
 	void writeMaskRegister(uint8_t data);
 	void writeScrollRegister(uint8_t data);
 	void writeAddrRegister(uint8_t data);
 	void writeDataRegister(uint8_t data);
+	//system general
 	void clock();
 	void reset();
 	bool triggerNMI();
@@ -52,11 +58,13 @@ private:
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
 	// internal data
+	uint8_t OAMaddr;
 	uint16_t nametable_base_addr;
 	uint16_t pattern_base_addr;
 	bool trigger_nmi;
 	UINT scanline;
 	UINT cycle;
+	uint8_t* OAMtable;
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;

@@ -153,10 +153,13 @@ uint8_t CPU::readByte(uint16_t addr)
 		uint8_t registerAddr = addr & 0x0007;
 		switch (registerAddr)
 		{
-		case 0x02:
+		case 2:
 			return ppu->readStatusRegister();
 			break;
-		case 0x07:
+		case 4:
+			return ppu->readOAMdataRegister();
+			break;
+		case 7:
 			return ppu->readDataRegister();
 			break;
 		default:
@@ -196,6 +199,12 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 		case 1:
 			ppu->writeMaskRegister(data);
 			break;
+		case 3:
+			ppu->writeOAMaddrRegister(data);
+			break;
+		case 4:
+			ppu->writeOAMdataRegister(data);
+			break;
 		case 5:
 			ppu->writeScrollRegister(data);
 			break;
@@ -209,6 +218,10 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 			exit(-1);
 			break;
 		}
+	}
+	else if (addr == 0x4014)
+	{
+		
 	}
 	else if (addr >= 0x4016 && addr <= 0x4017)
 	{
