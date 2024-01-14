@@ -156,6 +156,9 @@ uint8_t CPU::readByte(uint16_t addr)
 		case 0x02:
 			return ppu->readStatusRegister();
 			break;
+		case 0x07:
+			return ppu->readDataRegister();
+			break;
 		default:
 			exit(-1);
 			break;
@@ -203,7 +206,7 @@ void CPU::writeByte(uint16_t addr, uint8_t data)
 			ppu->writeDataRegister(data);
 			break;
 		default:
-			//exit(-1);
+			exit(-1);
 			break;
 		}
 	}

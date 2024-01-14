@@ -8,6 +8,7 @@ public:
 	//emulator functions
 	PPU(HWND hwnd, NesFile* cartridge);
 	uint8_t readStatusRegister();
+	uint8_t readDataRegister();
 	void writeControllRegister(uint8_t data);
 	void writeMaskRegister(uint8_t data);
 	void writeScrollRegister(uint8_t data);
@@ -49,6 +50,7 @@ private:
 	uint8_t shifter_up_latch;
 	uint8_t shifter_down_latch;
 	uint8_t attribute_latch;
+	uint8_t prevoius_read_data;
 	// internal data
 	uint16_t nametable_base_addr;
 	uint16_t pattern_base_addr;

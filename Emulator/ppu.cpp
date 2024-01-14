@@ -93,6 +93,17 @@ uint8_t PPU::readStatusRegister()
 	return statusBuffer;
 }
 
+uint8_t PPU::readDataRegister()
+{
+
+	uint8_t data = prevoius_read_data;
+	prevoius_read_data =  readByte(internal_addr);
+	if (internal_addr >= 0x3F00) data = prevoius_read_data;
+
+	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
+	return data;
+}
+
 void PPU::writeControllRegister(uint8_t data)
 {
 	uint8_t nmi_bit = controller.flags.trigger_nmi;
@@ -323,6 +334,8 @@ void PPU::reset()
 	status_reg.statusByte = 0;
 	status_reg.status.vblank = 1;
 	status_reg.status.sprite_0_hit = 1;
+
+
 }
 
 bool PPU::triggerNMI()
@@ -334,6 +347,7 @@ bool PPU::triggerNMI()
 
 void PPU::prefetch()
 {
+	//TO DO: possible bug, when prefetching for scanline 0 scanline 1 is prefetched 
 	//fetch data for first 16 pixels
 	if (cycle >= 321 && cycle <= 337)
 	{

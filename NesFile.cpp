@@ -53,6 +53,7 @@ NesFile::NesFile(std::string path)
 		ptrReadBytePPU = &NesFile::readMirrorPPU000;
 		ptrWriteByteCPU = &NesFile::writeByteMirrorCPU000;
 		ptrWriteBytePPU = &NesFile::writeByteMirrorPPU000;
+		break;
 	case 3:
 		ptrReadByteCPU = &NesFile::readMirrorCPU003;
 		ptrReadBytePPU = &NesFile::readMirrorPPU003;
