@@ -35,7 +35,9 @@ public:
 private:
 	void clearOAM();
 	void spriteEvaluation();
+	void spritePrefetch();
 	void prefetch();
+	PixelColor renderSprites(PixelColor background);
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
 	void initRenderingResources(HWND hwnd);
@@ -59,7 +61,8 @@ private:
 	uint16_t shift_register_down; // lower 8 bits are for currently processed tile 
 	uint16_t attribute_reg; // lower 8 bits are for currently processed tile 
 	// sprite registers;
-	uint8_t sprite_shift[8];
+	uint8_t sprite_shift_lo[8];
+	uint8_t sprite_shift_hi[8];
 	// latches for temporal data
 	uint8_t nametable_latch;
 	uint8_t shifter_up_latch;
@@ -79,7 +82,7 @@ private:
 	UINT cycle;
 	uint8_t secondaryOAMsize;
 	uint8_t* OAMtable;
-	uint8_t* secondaryOAM;
+	OAMentry* secondaryOAM;
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;

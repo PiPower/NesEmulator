@@ -15,7 +15,7 @@ PPU::PPU(HWND hwnd, NesFile* cartridge)
 	nametableRAM = new uint8_t[0x0800];
 	palleteRAM = new  uint8_t[0x20];
 	OAMtable = new uint8_t[64 * 4];
-	secondaryOAM = new  uint8_t[8 * 4];
+	secondaryOAM = new  OAMentry[8];
 	palleteLookup = new PixelColor[0x40];
 	clearingOAM = false;
 	secondaryOAMsize = 0;
@@ -217,7 +217,6 @@ void PPU::render()
 	current_frame = SwapChain->GetCurrentBackBufferIndex();
 	memset(cpuScreenBufferData, 0, bufferSize);
 	Synchronize();
-
 }
 
 void PPU::writePixel(UINT x, UINT y, UCHAR R, UCHAR G, UCHAR B, UCHAR A)
@@ -298,13 +297,76 @@ void PPU::clearOAM()
 
 	if (cycle_norm % 2 == 0)
 	{
-		secondaryOAM[cycle_norm / 2] = 0xFF;
+		((uint8_t*)secondaryOAM)[cycle_norm / 2] = 0xFF;
 	}
 }
 
 void PPU::spriteEvaluation()
 {
+
 	clearingOAM = false;
+	if (secondaryOAMsize == 8)
+	{
+		// add sprite overflow mechanism
+		return;
+	}
+
+	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
+	uint8_t primaryIndex = ((cycle - 65) % 64) * sizeof(OAMentry);
+	memcpy((void*)&secondaryOAM[secondaryOAMsize], (void*)&OAMtable[primaryIndex], sizeof(OAMentry) );
+
+	OAMentry* oamObject = &secondaryOAM[secondaryOAMsize];
+
+	if (prefetch_scanline - oamObject->y < 0 || prefetch_scanline - oamObject->y >= 8)
+	{
+		return;
+	}
+
+
+	secondaryOAMsize++;
+}
+
+void PPU::spritePrefetch()
+{
+	
+	if (cycle > 0 && cycle < 65)
+	{
+		clearOAM();
+	}
+
+	if (cycle >= 65 && cycle < 257)
+	{
+		spriteEvaluation();
+	}
+
+	if (cycle >= 257 && cycle <= 320)
+	{
+		
+		uint8_t sprite_index = floor((cycle - 257) / 8.0);
+		UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
+		uint8_t sprite_y = prefetch_scanline - secondaryOAM[sprite_index].y;
+		if (sprite_index >= secondaryOAMsize)
+		{
+			sprite_shift_lo[sprite_index] = 0xFF;
+			sprite_shift_hi[sprite_index] = 0xFF;
+			sprite_latches[sprite_index] = 0xFF;
+			counters[sprite_index] = 0xFF;
+			return;
+		}
+
+
+		sprite_shift_lo[sprite_index] =
+			readByte(pattern_base_addr + secondaryOAM[sprite_index].index_number * 16 + sprite_y);
+
+		sprite_shift_hi[sprite_index] =
+			readByte(pattern_base_addr + secondaryOAM[sprite_index].index_number * 16 + + 0x0008 + sprite_y);
+
+		sprite_latches[sprite_index] = secondaryOAM[sprite_index].attribute.Byte;
+		counters[sprite_index] = secondaryOAM[sprite_index].x;
+		
+
+	}
+	
 }
 
 void PPU::clock()
@@ -450,6 +512,16 @@ void PPU::prefetch()
 	}
 }
 
+PixelColor PPU::renderSprites(PixelColor background)
+{
+	uint8_t sprite_to_draw = 0xFF;
+	for (int i = 0; i < secondaryOAMsize; i++)
+	{
+		
+	}
+	return background;
+}
+
 uint8_t PPU::readByte(uint16_t addr)
 {
 	if (addr >= 0x0000 && addr <= 0x1FFF)
@@ -581,15 +653,7 @@ void PPU::visibleScanline()
 		return;
 	}
 
-	if (cycle > 0 && cycle < 65)
-	{
-		clearOAM();
-	}
-
-	if (cycle >= 65 && cycle < 257)
-	{
-		spriteEvaluation();
-	}
+	spritePrefetch();
 
 	if (cycle >= 1 && cycle < 257 )
 	{
@@ -651,6 +715,8 @@ void PPU::visibleScanline()
 		uint8_t index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
 
 		PixelColor color = palleteLookup[index];
+
+		color = renderSprites(color);
 		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 	}
 
@@ -681,16 +747,7 @@ void PPU::preRenderScanline()
 	}
 
 
-	if (cycle > 0 && cycle < 65)
-	{
-		clearOAM();
-	}
-
-	if (cycle >= 65 && cycle < 257)
-	{
-		spriteEvaluation();
-	}
-
+	spritePrefetch();
 	prefetch();
 }
 
