@@ -5,7 +5,7 @@
 #define PATTERN_TABLE_OFFSET_X 1024
 #define PATTERN_TABLE_OFFSET_Y 0
 #define RENDER_PATTERN_TABLE
-//#define RENDER_NAME_TABLE
+#define PRERENDER_SCANLINE 261
 
 PPU::PPU(HWND hwnd, NesFile* cartridge)
 	:DeviceResources(hwnd), cartridge(cartridge), trigger_nmi(false)
@@ -14,9 +14,12 @@ PPU::PPU(HWND hwnd, NesFile* cartridge)
 	reset();
 	nametableRAM = new uint8_t[0x0800];
 	palleteRAM = new  uint8_t[0x20];
-	OAMtable = new uint8_t[64 * 4];;
-
+	OAMtable = new uint8_t[64 * 4];
+	secondaryOAM = new  uint8_t[8 * 4];
 	palleteLookup = new PixelColor[0x40];
+	clearingOAM = false;
+	secondaryOAMsize = 0;
+
 	palleteLookup[0x00] = PixelColor{84, 84, 84, 255};
 	palleteLookup[0x01] = PixelColor{0, 30, 116, 255};
 	palleteLookup[0x02] = PixelColor{8, 16, 144, 255};
@@ -107,7 +110,7 @@ uint8_t PPU::readDataRegister()
 
 uint8_t PPU::readOAMdataRegister()
 {
-	return OAMtable[OAMaddr];
+	return clearingOAM? 0xFF : OAMtable[OAMaddr];
 }
 
 void PPU::writeOAMaddrRegister(uint8_t data)
@@ -287,6 +290,23 @@ void PPU::RenderRawNametable(uint8_t i)
 	}
 }
 
+void PPU::clearOAM()
+{
+	uint8_t cycle_norm = cycle - 1;
+	secondaryOAMsize = 0;
+	clearingOAM = true;
+
+	if (cycle_norm % 2 == 0)
+	{
+		secondaryOAM[cycle_norm / 2] = 0xFF;
+	}
+}
+
+void PPU::spriteEvaluation()
+{
+	clearingOAM = false;
+}
+
 void PPU::clock()
 {
 	if (scanline == 0)
@@ -385,11 +405,11 @@ void PPU::stopDMA()
 
 void PPU::prefetch()
 {
-	//TO DO: possible bug, when prefetching for scanline 0 scanline 1 is prefetched 
 	//fetch data for first 16 pixels
 	if (cycle >= 321 && cycle <= 337)
 	{
 		uint8_t pixelId = (cycle - 321) % 8;
+		UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
 
 		if (pixelId == 0 && cycle > 321)
 		{
@@ -407,7 +427,7 @@ void PPU::prefetch()
 		{
 		case 0:
 		{
-			uint8_t y_tile = floor((scanline + 1) / 8);
+			uint8_t y_tile = floor((prefetch_scanline) / 8);
 			uint8_t x_tile = floor((cycle - 321) / 8);
 			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile);
 
@@ -415,16 +435,16 @@ void PPU::prefetch()
 		break;
 		case 2:
 		{
-			uint8_t y_tile = floor((scanline + 1) / 32);
+			uint8_t y_tile = floor((prefetch_scanline) / 32);
 			uint8_t x_tile = floor((cycle - 321) / 32);
 			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
 		}
 		break;
 		case 4:
-			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + scanline % 8);
+			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + prefetch_scanline % 8);
 			break;
 		case 6:
-			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + prefetch_scanline % 8);
 			break;
 		}
 	}
@@ -561,6 +581,16 @@ void PPU::visibleScanline()
 		return;
 	}
 
+	if (cycle > 0 && cycle < 65)
+	{
+		clearOAM();
+	}
+
+	if (cycle >= 65 && cycle < 257)
+	{
+		spriteEvaluation();
+	}
+
 	if (cycle >= 1 && cycle < 257 )
 	{
 		uint8_t pixelId = (cycle - 1) % 8;
@@ -649,10 +679,19 @@ void PPU::preRenderScanline()
 		status_reg.status.vblank = 0;
 		trigger_nmi = false;
 	}
-	UINT scanlineBuffer = scanline;
-	scanline = 0;
+
+
+	if (cycle > 0 && cycle < 65)
+	{
+		clearOAM();
+	}
+
+	if (cycle >= 65 && cycle < 257)
+	{
+		spriteEvaluation();
+	}
+
 	prefetch();
-	scanline = scanlineBuffer;
 }
 
 void PPU::drawTile(UINT x, UINT y, UINT  tile_size, UCHAR R, UCHAR G, UCHAR B, UCHAR A, UINT tile_offset_x, UINT tile_offset_y)

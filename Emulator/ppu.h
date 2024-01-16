@@ -33,6 +33,8 @@ public:
 	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
+	void clearOAM();
+	void spriteEvaluation();
 	void prefetch();
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
@@ -51,16 +53,21 @@ private:
 	uint8_t w_register;
 	uint8_t x_scroll;
 	uint8_t y_scroll;
+	//background registers
 	uint16_t internal_addr;
 	uint16_t shift_register_up;// lower 8 bits are for currently processed tile 
 	uint16_t shift_register_down; // lower 8 bits are for currently processed tile 
 	uint16_t attribute_reg; // lower 8 bits are for currently processed tile 
+	// sprite registers;
+	uint8_t sprite_shift[8];
 	// latches for temporal data
 	uint8_t nametable_latch;
 	uint8_t shifter_up_latch;
 	uint8_t shifter_down_latch;
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
+	uint8_t sprite_latches[8];
+	uint8_t counters[8];
 	// internal data
 	uint8_t dma_page;
 	uint8_t OAMaddr;
@@ -70,14 +77,14 @@ private:
 	bool trigger_dma;
 	UINT scanline;
 	UINT cycle;
-public:
+	uint8_t secondaryOAMsize;
 	uint8_t* OAMtable;
-private:
+	uint8_t* secondaryOAM;
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;
 	NesFile* cartridge;
-	
+	bool clearingOAM;
 	// DirectX stuff
 	D3D12_RESOURCE_BARRIER transitionTable[8];
 	ComPtr<ID3D12Resource> ScreenTexture;

@@ -60,3 +60,27 @@ struct PixelColor
 	byte B;
 	byte A;
 };
+
+struct AttributeFlags
+{
+	byte pallete : 2;
+	byte unimplemented : 3;
+
+	byte priority : 1;
+	byte flip_hor : 1;
+	byte flip_ver : 1;
+
+};
+
+union Attribute
+{
+	AttributeFlags flags;
+	byte Byte;
+};
+struct OAMentry
+{
+	uint8_t y;
+	uint8_t index_number;
+	Attribute attribute;
+	uint8_t x;
+};
