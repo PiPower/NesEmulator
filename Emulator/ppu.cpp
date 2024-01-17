@@ -519,10 +519,13 @@ PixelColor PPU::renderSprites(PixelColor background)
 	uint8_t sprite_to_draw = 0xFF;
 	PixelColor out = background;
 
+	bool OAMprint = false;
+
+
 	for (int i = fetched_sprites - 1; i >= 0; i--)
 	{
 
-		if (counter[i] == 0 || (counter[i] <= 0xFF && counter[i] >= 0xF9))
+		if (counter[i] <= 0 && counter[i] > -8)
 		{
 			uint8_t patternLo = (sprite_shift_lo[i] >> (counter[i] + 7)) & 0x1;
 			uint8_t patternHi = (sprite_shift_hi[i] >> (counter[i] + 7)) & 0x1;
@@ -735,7 +738,7 @@ void PPU::visibleScanline()
 		{
 			color = renderSprites(color);
 		}
-		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+		 drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 	}
 
 	prefetch();
