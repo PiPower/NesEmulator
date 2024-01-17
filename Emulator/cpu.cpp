@@ -119,6 +119,7 @@ void CPU::handleDMA(UINT systemClock)
 
 	if ((dma_addr & 0xFF00) > 0)
 	{
+		dma_cycle_aligned = false;
 		dma_addr = 0;
 		ppu->stopDMA();
 	}
