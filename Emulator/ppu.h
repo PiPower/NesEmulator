@@ -33,6 +33,7 @@ public:
 	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
+	void loadSpriteShiftRegisters();
 	void clearOAM();
 	void spriteEvaluation();
 	void spritePrefetch();
@@ -62,15 +63,15 @@ private:
 	uint16_t attribute_reg; // lower 8 bits are for currently processed tile 
 	// sprite registers;
 	uint8_t sprite_shift_lo[8];
-	uint8_t sprite_shift_hi[8];
+	uint8_t sprite_shift_hi[8]; 
 	// latches for temporal data
 	uint8_t nametable_latch;
 	uint8_t shifter_up_latch;
 	uint8_t shifter_down_latch;
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
-	uint8_t sprite_latches[8];
-	uint8_t counters[8];
+	uint8_t sprite_latch[8];// holds OAM attribute for sprite
+	uint8_t counter[8]; // holds x for sprite
 	// internal data
 	uint8_t dma_page;
 	uint8_t OAMaddr;
@@ -80,6 +81,7 @@ private:
 	bool trigger_dma;
 	UINT scanline;
 	UINT cycle;
+	uint8_t fetched_sprites;
 	uint8_t secondaryOAMsize;
 	uint8_t* OAMtable;
 	OAMentry* secondaryOAM;
