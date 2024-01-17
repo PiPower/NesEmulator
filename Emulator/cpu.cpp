@@ -109,20 +109,24 @@ void CPU::handleDMA(UINT systemClock)
 	static uint16_t dma_addr = 0;
 	if (systemClock % 2 == 0)
 	{
+		if(dma_addr == 0x00FF)
+		{
+			int x = 2;
+		}
 		dma_data = readByte(ppu->getDmaPage() << 8 | (dma_addr& 0x00FF) );
 		dma_addr++;
 	}
 	else
 	{
 		ppu->writeOAMdataRegister(dma_data);
+		if ((dma_addr & 0xFF00) > 0)
+		{
+			dma_cycle_aligned = false;
+			dma_addr = 0;
+			ppu->stopDMA();
+		}
 	}
 
-	if ((dma_addr & 0xFF00) > 0)
-	{
-		dma_cycle_aligned = false;
-		dma_addr = 0;
-		ppu->stopDMA();
-	}
 
 
 }
