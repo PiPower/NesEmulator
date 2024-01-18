@@ -530,8 +530,9 @@ PixelColor PPU::renderSprites(PixelColor background)
 			uint8_t patternLo = (sprite_shift_lo[i] >> (counter[i] + 7)) & 0x1;
 			uint8_t patternHi = (sprite_shift_hi[i] >> (counter[i] + 7)) & 0x1;
 			uint8_t pallete = sprite_latch[i] & 0x03;
-			uint8_t index = readByte(0x3F10 + pallete * 4 + ((patternHi << 1) | patternLo));
-			out = palleteLookup[index];
+			uint8_t background_id = readByte(0x3F00);
+			uint8_t sprite_id = readByte(0x3F10 + pallete * 4 + ((patternHi << 1) | patternLo));
+			if(background_id != sprite_id) out = palleteLookup[sprite_id];
 		}
 
 		counter[i]--;
