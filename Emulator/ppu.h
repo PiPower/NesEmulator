@@ -38,7 +38,7 @@ private:
 	void spriteEvaluation();
 	void spritePrefetch();
 	void prefetch();
-	PixelColor renderSprites(PixelColor background);
+	PixelColor renderSprites(uint8_t background, uint8_t universalBackground);
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
 	void initRenderingResources(HWND hwnd);
@@ -74,6 +74,8 @@ private:
 	uint8_t sprite_y_latch[8];
 	int counter[8]; // holds x for sprite
 	// internal data
+	bool sprite_0_selected;
+	bool sprite_0_hit_possible;
 	uint8_t dma_page;
 	uint8_t OAMaddr;
 	uint16_t nametable_base_addr;

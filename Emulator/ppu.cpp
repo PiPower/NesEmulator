@@ -352,7 +352,7 @@ void PPU::spriteEvaluation()
 		return;
 	}
 
-
+	if (primaryIndex == 0) sprite_0_selected = true;
 	secondaryOAMsize++;
 }
 
@@ -361,6 +361,7 @@ void PPU::spritePrefetch()
 	
 	if (cycle > 0 && cycle < 65)
 	{
+		sprite_0_selected = false;
 		clearOAM();
 	}
 
@@ -386,6 +387,7 @@ void PPU::clock()
 	if (cycle > 340)
 	{
 		cycle = 0;
+		sprite_0_hit_possible = false;
 		scanline++;
 	}
 
@@ -442,6 +444,7 @@ void PPU::reset()
 	status_reg.status.sprite_0_hit = 1;
 
 	trigger_dma = false;
+	sprite_0_selected = false;
 }
 
 bool PPU::triggerNMI()
@@ -519,10 +522,10 @@ void PPU::prefetch()
 	}
 }
 
-PixelColor PPU::renderSprites(PixelColor background)
+PixelColor PPU::renderSprites(uint8_t background, uint8_t universalBackground)
 {
 	uint8_t sprite_to_draw = 0xFF;
-	PixelColor out = background;
+	PixelColor out = palleteLookup[background];
 
 	bool OAMprint = false;
 
@@ -536,9 +539,16 @@ PixelColor PPU::renderSprites(PixelColor background)
 			uint8_t patternLo = (sprite_shift_lo[i] >> shftOffset) & 0x01;
 			uint8_t patternHi = (sprite_shift_hi[i] >> shftOffset) & 0x01;
 			uint8_t pallete = sprite_latch[i] & 0x03;
-			uint8_t background_id = readByte(0x3F00);
+
 			uint8_t sprite_id = readByte(0x3F10 + pallete * 4 + ((patternHi << 1) | patternLo));
-			if(background_id != sprite_id) out = palleteLookup[sprite_id];
+			if (universalBackground != sprite_id)
+			{
+				out = palleteLookup[sprite_id];
+				if (sprite_0_hit_possible && i == 0 && background != universalBackground)
+				{
+					status_reg.status.sprite_0_hit = 1;
+				}
+			}
 		}
 
 		counter[i]--;
@@ -672,8 +682,10 @@ void PPU::initResourceTransitionTable()
 
 void PPU::visibleScanline()
 {
+
 	if (cycle == 0)
 	{
+		if (sprite_0_selected) sprite_0_hit_possible = true;
 		return;
 	}
 
@@ -739,7 +751,7 @@ void PPU::visibleScanline()
 		PixelColor color = palleteLookup[index];
 		if (mask_reg.flags.show_sprites)
 		{
-			color = renderSprites(color);
+			color = renderSprites(index, readByte(0x3F00));
 		}
 		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 	}
