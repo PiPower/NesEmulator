@@ -71,6 +71,7 @@ private:
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
 	uint8_t sprite_latch[8];// holds OAM attribute for sprite
+	uint8_t sprite_y_latch[8];
 	int counter[8]; // holds x for sprite
 	// internal data
 	uint8_t dma_page;

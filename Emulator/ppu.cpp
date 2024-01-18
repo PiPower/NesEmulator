@@ -294,7 +294,8 @@ void PPU::loadSpriteShiftRegisters()
 
 	fetched_sprites = secondaryOAMsize;
 	uint8_t sprite_index = floor((cycle - 257) / 8.0);
-	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
+	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline;
+
 	uint8_t sprite_y = prefetch_scanline - secondaryOAM[sprite_index].y;
 	if (secondaryOAM[sprite_index].attribute.flags.flip_ver > 0) sprite_y = 7 - sprite_y;
 
@@ -307,14 +308,15 @@ void PPU::loadSpriteShiftRegisters()
 		return;
 	}
 
-	uint16_t sprite_offset = ((uint16_t)secondaryOAM[sprite_index].index_number) * 16;
+	uint16_t sprite_offset = ((uint16_t)secondaryOAM[sprite_index].index_number) * 16 ;
 	uint16_t sprite_base_addr = controller.flags.sprite_pt_addr ? 0x1000 : 0x0000;
 
-	sprite_shift_lo[sprite_index] = readByte(sprite_base_addr + sprite_offset + sprite_y);
+	sprite_shift_lo[sprite_index] = readByte(sprite_base_addr + sprite_offset + sprite_y );
 	sprite_shift_hi[sprite_index] = readByte(sprite_base_addr + sprite_offset + 0x0008 + sprite_y);
 
 	sprite_latch[sprite_index] = secondaryOAM[sprite_index].attribute.Byte;
 	counter[sprite_index] = secondaryOAM[sprite_index].x;
+	sprite_y_latch[sprite_index] = secondaryOAM[sprite_index].y;
 }
 
 void PPU::clearOAM()
@@ -339,7 +341,8 @@ void PPU::spriteEvaluation()
 		return;
 	}
 
-	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline +1;
+
+	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline;
 	uint8_t primaryIndex = ((cycle - 65) % 64) * sizeof(OAMentry);
 	memcpy((void*)&secondaryOAM[secondaryOAMsize], (void*)&OAMtable[primaryIndex], sizeof(OAMentry) );
 	OAMentry* oamObject = &secondaryOAM[secondaryOAMsize];
@@ -674,10 +677,6 @@ void PPU::visibleScanline()
 		return;
 	}
 
-
-	spritePrefetch();
-	
-
 	if (cycle >= 1 && cycle < 257 )
 	{
 		uint8_t pixelId = (cycle - 1) % 8;
@@ -742,9 +741,10 @@ void PPU::visibleScanline()
 		{
 			color = renderSprites(color);
 		}
-		 drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 	}
 
+	spritePrefetch();
 	prefetch();
 }
 
