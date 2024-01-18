@@ -296,6 +296,8 @@ void PPU::loadSpriteShiftRegisters()
 	uint8_t sprite_index = floor((cycle - 257) / 8.0);
 	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
 	uint8_t sprite_y = prefetch_scanline - secondaryOAM[sprite_index].y;
+	if (secondaryOAM[sprite_index].attribute.flags.flip_ver > 0) sprite_y = 7 - sprite_y;
+
 	if (sprite_index >= secondaryOAMsize)
 	{
 		sprite_shift_lo[sprite_index] = 0xFF;
@@ -307,8 +309,8 @@ void PPU::loadSpriteShiftRegisters()
 
 	uint16_t sprite_offset = ((uint16_t)secondaryOAM[sprite_index].index_number) * 16;
 	uint16_t sprite_base_addr = controller.flags.sprite_pt_addr ? 0x1000 : 0x0000;
-	sprite_shift_lo[sprite_index] = readByte(sprite_base_addr + sprite_offset + sprite_y);
 
+	sprite_shift_lo[sprite_index] = readByte(sprite_base_addr + sprite_offset + sprite_y);
 	sprite_shift_hi[sprite_index] = readByte(sprite_base_addr + sprite_offset + 0x0008 + sprite_y);
 
 	sprite_latch[sprite_index] = secondaryOAM[sprite_index].attribute.Byte;
@@ -337,7 +339,7 @@ void PPU::spriteEvaluation()
 		return;
 	}
 
-	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
+	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline +1;
 	uint8_t primaryIndex = ((cycle - 65) % 64) * sizeof(OAMentry);
 	memcpy((void*)&secondaryOAM[secondaryOAMsize], (void*)&OAMtable[primaryIndex], sizeof(OAMentry) );
 	OAMentry* oamObject = &secondaryOAM[secondaryOAMsize];
@@ -527,8 +529,9 @@ PixelColor PPU::renderSprites(PixelColor background)
 
 		if (counter[i] <= 0 && counter[i] > -8)
 		{
-			uint8_t patternLo = (sprite_shift_lo[i] >> (counter[i] + 7)) & 0x1;
-			uint8_t patternHi = (sprite_shift_hi[i] >> (counter[i] + 7)) & 0x1;
+			uint8_t shftOffset = (sprite_latch[i] & 0x40) > 0 ? -counter[i] : (counter[i] + 7 );
+			uint8_t patternLo = (sprite_shift_lo[i] >> shftOffset) & 0x01;
+			uint8_t patternHi = (sprite_shift_hi[i] >> shftOffset) & 0x01;
 			uint8_t pallete = sprite_latch[i] & 0x03;
 			uint8_t background_id = readByte(0x3F00);
 			uint8_t sprite_id = readByte(0x3F10 + pallete * 4 + ((patternHi << 1) | patternLo));
