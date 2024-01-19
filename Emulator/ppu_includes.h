@@ -55,10 +55,10 @@ union PPUMASK
 
 struct PixelColor
 {
-	byte R;
-	byte G;
-	byte B;
-	byte A;
+	UCHAR R;
+	UCHAR G;
+	UCHAR B;
+	UCHAR A;
 };
 
 struct AttributeFlags

@@ -725,6 +725,7 @@ void PPU::visibleScanline()
 		if (sprite_0_selected) sprite_0_hit_possible = true;
 		return;
 	}
+
 	PixelColor color = { 0,0,0,255 };
 	uint8_t bg_color_index = 0;
 	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_bg)
@@ -742,7 +743,6 @@ void PPU::visibleScanline()
 			attribute_reg >>= 8;
 			attribute_reg = (attribute_reg & 0x00FF) | ((uint16_t)attribute_latch << 8);
 		}	
-
 
 		switch (pixelId)
 		{
@@ -780,7 +780,6 @@ void PPU::visibleScanline()
 		uint8_t patternHi = (shift_register_up >> pixelId) & 0x1;
 
 		bg_color_index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
-
 		color = palleteLookup[bg_color_index];
 	}
 	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_sprites)
@@ -797,8 +796,8 @@ void PPU::visibleScanline()
 		resetX();
 	}	
 
-
-	drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+	if(cycle >= 1 && cycle < 257)
+		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 
 	spritePrefetch();
 	prefetch();
