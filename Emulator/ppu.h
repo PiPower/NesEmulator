@@ -35,9 +35,12 @@ public:
 private:
 	void loadSpriteShiftRegisters();
 	void clearOAM();
+	void coarseXincrement();
+	void coarseYincrement();
 	void spriteEvaluation();
 	void spritePrefetch();
 	void prefetch();
+	void resetX();
 	PixelColor renderSprites(uint8_t background, uint8_t universalBackground);
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
@@ -54,10 +57,7 @@ private:
 	PPUCTRL controller;
 	PPUMASK mask_reg;
 	uint8_t w_register;
-	uint8_t x_scroll;
-	uint8_t y_scroll;
 	//background registers
-	uint16_t internal_addr;
 	uint16_t shift_register_up;// lower 8 bits are for currently processed tile 
 	uint16_t shift_register_down; // lower 8 bits are for currently processed tile 
 	uint16_t attribute_reg; // lower 8 bits are for currently processed tile 
@@ -74,11 +74,13 @@ private:
 	uint8_t sprite_y_latch[8];
 	int counter[8]; // holds x for sprite
 	// internal data
+	uint8_t fine_x;
+	InternalAddress internal_addr;
+	InternalAddress temp_addr;
 	bool sprite_0_selected;
 	bool sprite_0_hit_possible;
 	uint8_t dma_page;
 	uint8_t OAMaddr;
-	uint16_t nametable_base_addr;
 	uint16_t pattern_base_addr;
 	bool trigger_nmi;
 	bool trigger_dma;

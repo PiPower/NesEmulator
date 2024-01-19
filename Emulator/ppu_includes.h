@@ -84,3 +84,17 @@ struct OAMentry
 	Attribute attribute;
 	uint8_t x;
 };
+
+union InternalAddress
+{
+	struct
+	{
+		uint16_t coarse_x : 5;
+		uint16_t coarse_y : 5;
+		uint16_t nametable : 2;
+		uint16_t fine_y : 3;
+		uint16_t padding : 1;
+	};
+
+	uint16_t word;
+};

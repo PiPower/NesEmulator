@@ -101,10 +101,10 @@ uint8_t PPU::readDataRegister()
 {
 
 	uint8_t data = prevoius_read_data;
-	prevoius_read_data =  readByte(internal_addr);
-	if (internal_addr >= 0x3F00) data = prevoius_read_data;
+	prevoius_read_data =  readByte(internal_addr.word);
+	if (internal_addr.word >= 0x3F00) data = prevoius_read_data;
 
-	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
+	internal_addr.word += controller.flags.addr_increment > 0 ? 32 : 1;
 	return data;
 }
 
@@ -129,21 +129,7 @@ void PPU::writeControllRegister(uint8_t data)
 	uint8_t nmi_bit = controller.flags.trigger_nmi;
 	controller.Byte = data;
 
-	switch (controller.flags.base_addr)
-	{
-	case 0:
-		nametable_base_addr = 0x2000;
-		break;
-	case 1:
-		nametable_base_addr = 0x2400;
-		break;
-	case 2:
-		nametable_base_addr = 0x2800;
-		break;
-	case 3:
-		nametable_base_addr = 0x2C00;
-		break;
-	}
+	temp_addr.nametable = controller.flags.base_addr;
 	pattern_base_addr = controller.flags.background_pt_addr ? 0x1000 : 0x0 ;
 
 	if (status_reg.status.vblank > 0 && nmi_bit == 0 && controller.flags.trigger_nmi > 0)
@@ -159,14 +145,17 @@ void PPU::writeMaskRegister(uint8_t data)
 
 void PPU::writeScrollRegister(uint8_t data)
 {
+
 	if (w_register == 0)
 	{
-		x_scroll = data;
+		fine_x = data & 0x07;
+		temp_addr.coarse_x = data >> 3;
 		w_register = 1;
 	}
 	else if (w_register == 1)
 	{
-		y_scroll = data;
+		temp_addr.fine_y = data & 0x07;
+		temp_addr.coarse_y = data >> 3;
 		w_register = 0;
 	}
 }
@@ -175,20 +164,21 @@ void PPU::writeAddrRegister(uint8_t data)
 {
 	if (w_register == 0)
 	{
-		internal_addr = (data << 8) | (internal_addr & 0x00FF);
+		temp_addr.word = (((uint16_t)data & 0x3F) << 8) | (temp_addr.word & 0x00FF);
 		w_register = 1;
 	}
 	else if (w_register == 1)
 	{
-		internal_addr = (data) | (internal_addr & 0xFF00);
+		temp_addr.word = data | (temp_addr.word & 0xFF00);
+		internal_addr.word = temp_addr.word;
 		w_register = 0;
 	}
 }
 
 void PPU::writeDataRegister(uint8_t data)
 {
-	writeByte(internal_addr, data);
-	internal_addr += controller.flags.addr_increment > 0 ? 32 : 1;
+	writeByte(internal_addr.word, data);
+	internal_addr.word += controller.flags.addr_increment > 0 ? 32 : 1;
 }
 
 void PPU::render()
@@ -293,7 +283,11 @@ void PPU::loadSpriteShiftRegisters()
 {
 
 	fetched_sprites = secondaryOAMsize;
-	uint8_t sprite_index = floor((cycle - 257) / 8.0);
+	uint8_t sprite_index =(cycle - 257);
+	if (sprite_index > 7)
+	{
+		return;
+	}
 	UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline;
 
 	uint8_t sprite_y = prefetch_scanline - secondaryOAM[sprite_index].y;
@@ -331,13 +325,48 @@ void PPU::clearOAM()
 	}
 }
 
+void PPU::coarseXincrement()
+{
+	if (internal_addr.coarse_x == 31)
+	{
+		internal_addr.coarse_x = 0;
+		internal_addr.nametable = (~internal_addr.nametable&0x01) | (internal_addr.nametable & 0x02);
+	}
+	else
+	{
+		internal_addr.coarse_x += 1;
+	}
+}
+
+void PPU::coarseYincrement()
+{
+	if (internal_addr.fine_y < 7)
+	{
+		internal_addr.fine_y++;
+		return;
+	}
+	internal_addr.fine_y = 0;
+	if (internal_addr.coarse_y == 29)
+	{
+		internal_addr.coarse_y = 0;
+		internal_addr.nametable = (~internal_addr.nametable & 0x02) | (internal_addr.nametable & 0x01);
+	}
+	else if (internal_addr.coarse_y == 31)
+	{
+		internal_addr.coarse_y = 0;
+	}
+	else 
+	{
+		internal_addr.coarse_y++;
+	}
+}
+
 void PPU::spriteEvaluation()
 {
 
 	clearingOAM = false;
-	if (secondaryOAMsize == 8)
+	if (secondaryOAMsize == 8 || cycle > (2 * 65) )
 	{
-		// add sprite overflow mechanism
 		return;
 	}
 
@@ -379,10 +408,6 @@ void PPU::spritePrefetch()
 
 void PPU::clock()
 {
-	if (scanline == 0)
-	{
-		status_reg.status.vblank = 0;
-	}
 
 	if (cycle > 340)
 	{
@@ -408,6 +433,14 @@ void PPU::clock()
 
 	if (scanline == 261)
 	{
+		if (cycle == 1)
+		{
+			status_reg.status.vblank = 0;
+			if (mask_reg.flags.show_bg)
+			{
+				internal_addr= temp_addr;
+			}
+		}
 		preRenderScanline();
 	}
 
@@ -434,8 +467,6 @@ void PPU::reset()
 	scanline = 0;
 	cycle = 0;
 
-	x_scroll = 0;
-	y_scroll = 0;
 	w_register = 0;
 	controller.Byte = 0;
 	mask_reg.Byte = 0;
@@ -445,6 +476,7 @@ void PPU::reset()
 
 	trigger_dma = false;
 	sprite_0_selected = false;
+	
 }
 
 bool PPU::triggerNMI()
@@ -478,7 +510,7 @@ void PPU::stopDMA()
 void PPU::prefetch()
 {
 	//fetch data for first 16 pixels
-	if (cycle >= 321 && cycle <= 337)
+	if (cycle >= 321 && cycle <= 337 && mask_reg.flags.show_bg)
 	{
 		uint8_t pixelId = (cycle - 321) % 8;
 		UINT prefetch_scanline = scanline == PRERENDER_SCANLINE ? 0 : scanline + 1;
@@ -498,28 +530,31 @@ void PPU::prefetch()
 		switch (pixelId)
 		{
 		case 0:
-		{
-			uint8_t y_tile = floor((prefetch_scanline) / 8);
-			uint8_t x_tile = floor((cycle - 321) / 8);
-			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile);
-
-		}
-		break;
+			nametable_latch = readByte(0x2000 | (internal_addr.word & 0x0FFF));
+			break;
 		case 2:
-		{
-			uint8_t y_tile = floor((prefetch_scanline) / 32);
-			uint8_t x_tile = floor((cycle - 321) / 32);
-			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
-		}
-		break;
+			attribute_latch = readByte(0x23C0 
+				| (internal_addr.nametable << 10)
+				| ((internal_addr.coarse_y >> 2) << 3)
+				| (internal_addr.coarse_x >> 2));
+			break;
 		case 4:
 			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + prefetch_scanline % 8);
 			break;
 		case 6:
 			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + prefetch_scanline % 8);
 			break;
+		case 7:
+			coarseXincrement();
+			break;
 		}
 	}
+}
+
+void PPU::resetX()
+{
+	internal_addr.coarse_x = temp_addr.coarse_x;
+	internal_addr.nametable = (temp_addr.nametable & 0x01) | (internal_addr.nametable & 0x02);
 }
 
 PixelColor PPU::renderSprites(uint8_t background, uint8_t universalBackground)
@@ -621,6 +656,8 @@ void PPU::writeByte(uint16_t addr, uint8_t data)
 		if (addr == 0x0018) addr = 0x0008;
 		if (addr == 0x001C) addr = 0x000C;
 		palleteRAM[addr] = data;
+		//wstring debug_info = L"addr: " + to_wstring(addr) + L" data: " + to_wstring(data) + L"\n";
+		//OutputDebugString(debug_info.c_str());
 	}
 }
 
@@ -688,8 +725,9 @@ void PPU::visibleScanline()
 		if (sprite_0_selected) sprite_0_hit_possible = true;
 		return;
 	}
-
-	if (cycle >= 1 && cycle < 257 )
+	PixelColor color = { 0,0,0,255 };
+	uint8_t bg_color_index = 0;
+	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_bg)
 	{
 		uint8_t pixelId = (cycle - 1) % 8;
 
@@ -710,20 +748,13 @@ void PPU::visibleScanline()
 		{
 		// store nametable for next tile in latch
 		case 0:
-		{
-			uint8_t y_tile = floor(scanline / 8);
-			uint8_t x_tile = floor((cycle-1 + 16) / 8);
-			nametable_latch = readByte(nametable_base_addr + y_tile * 32 + x_tile);
-
-		}
+			nametable_latch = readByte(0x2000 | (internal_addr.word & 0x0FFF));
 			break;
-		//  store attribute for next tiles in latch 
+			//  store attribute for next tiles in latch 
 		case 2:
-		{
-			uint8_t y_tile = floor(scanline / 32);
-			uint8_t x_tile = floor((cycle - 1 + 16) / 32);
-			attribute_latch = readByte(nametable_base_addr + 0x03C0 + y_tile * 8 + x_tile);
-		}
+			attribute_latch = readByte(0x23C0 | (internal_addr.nametable << 10)
+				| ((internal_addr.coarse_y >> 2) << 3)
+				| (internal_addr.coarse_x >> 2));
 			break;
 		//  store lo patter on for next tile in latch 
 		case 4:
@@ -733,6 +764,8 @@ void PPU::visibleScanline()
 		case 6:
 			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
 			break;
+		case 7:
+			coarseXincrement();
 		}
 
 
@@ -746,15 +779,26 @@ void PPU::visibleScanline()
 		uint8_t patternLo = (shift_register_down >> pixelId) & 0x1;
 		uint8_t patternHi = (shift_register_up >> pixelId) & 0x1;
 
-		uint8_t index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
+		bg_color_index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
 
-		PixelColor color = palleteLookup[index];
-		if (mask_reg.flags.show_sprites)
-		{
-			color = renderSprites(index, readByte(0x3F00));
-		}
-		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+		color = palleteLookup[bg_color_index];
 	}
+	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_sprites)
+	{
+		color = renderSprites(bg_color_index, readByte(0x3F00));
+	}
+
+	if (cycle == 256 && mask_reg.flags.show_bg)
+	{
+		coarseYincrement();
+	}
+	if (cycle == 257 && mask_reg.flags.show_bg)
+	{
+		resetX();
+	}	
+
+
+	drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
 
 	spritePrefetch();
 	prefetch();
