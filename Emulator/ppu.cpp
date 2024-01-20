@@ -279,6 +279,45 @@ void PPU::RenderRawNametable(uint8_t i)
 	}
 }
 
+void PPU::drawPixel(uint8_t pixel_offset_bg, uint8_t pallete_bg, uint8_t pixel_offset_fg, uint8_t pallete_fg)
+{
+	PixelColor color = { 0,0,0,255 };
+	uint8_t final_pixel = 0;
+	uint8_t final_pallete = 0;
+	uint8_t pallete_offset = 0;
+	if (pixel_offset_fg == 0 && pixel_offset_bg == 0)
+	{
+		final_pixel = 0;
+		final_pallete = 0;
+	}
+	else if (pixel_offset_bg != 0 && pixel_offset_fg == 0)
+	{
+		final_pixel = pixel_offset_bg;
+		final_pallete = pallete_bg;
+	}
+	else if (pixel_offset_bg == 0 && pixel_offset_fg != 0)
+	{
+		final_pixel = pixel_offset_fg;
+		final_pallete = pallete_fg;
+		pallete_offset = 0x0010;
+	}
+
+	if (pixel_offset_bg != 0 && pixel_offset_fg != 0)
+	{
+		final_pixel = pixel_offset_fg;
+		final_pallete = pallete_fg;
+		pallete_offset = 0x0010;
+
+		if (sprite_0_hit_possible)
+		{
+			status_reg.status.sprite_0_hit = 1;
+		}
+	}
+
+	color = palleteLookup[readByte(0x3F00 + pallete_offset + final_pallete * 4 + final_pixel)];
+	drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+}
+
 void PPU::loadSpriteShiftRegisters()
 {
 
@@ -533,16 +572,22 @@ void PPU::prefetch()
 			nametable_latch = readByte(0x2000 | (internal_addr.word & 0x0FFF));
 			break;
 		case 2:
-			attribute_latch = readByte(0x23C0 
-				| (internal_addr.nametable << 10)
+		{
+			attribute_latch = readByte(0x23C0 | (internal_addr.nametable << 10)
 				| ((internal_addr.coarse_y >> 2) << 3)
 				| (internal_addr.coarse_x >> 2));
-			break;
+			if (internal_addr.coarse_y & 0x02) attribute_latch >>= 4;
+			if (internal_addr.coarse_x & 0x02) attribute_latch >>= 2;
+			attribute_latch &= 0x03;
+		}
+		break;
+		//  store lo patter on for next tile in latch 
 		case 4:
-			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + prefetch_scanline % 8);
+			shifter_down_latch = readByte(pattern_base_addr + nametable_latch * 16 + internal_addr.fine_y);
 			break;
+			//  store hi patter on for next tile in latch 
 		case 6:
-			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + prefetch_scanline % 8);
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + internal_addr.fine_y);
 			break;
 		case 7:
 			coarseXincrement();
@@ -557,37 +602,27 @@ void PPU::resetX()
 	internal_addr.nametable = (temp_addr.nametable & 0x01) | (internal_addr.nametable & 0x02);
 }
 
-PixelColor PPU::renderSprites(uint8_t background, uint8_t universalBackground)
+uint16_t PPU::renderSprites()
 {
-	uint8_t sprite_to_draw = 0xFF;
-	PixelColor out = palleteLookup[background];
-
-	bool OAMprint = false;
-
+	uint8_t pixel_offset = 0;
+	uint8_t pallete = 0;
+	uint16_t out = 0;
 
 	for (int i = fetched_sprites - 1; i >= 0; i--)
 	{
 
 		if (counter[i] <= 0 && counter[i] > -8)
 		{
-			uint8_t shftOffset = (sprite_latch[i] & 0x40) > 0 ? -counter[i] : (counter[i] + 7 );
-			uint8_t patternLo = (sprite_shift_lo[i] >> shftOffset) & 0x01;
-			uint8_t patternHi = (sprite_shift_hi[i] >> shftOffset) & 0x01;
-			uint8_t pallete = sprite_latch[i] & 0x03;
-
-			uint8_t sprite_id = readByte(0x3F10 + pallete * 4 + ((patternHi << 1) | patternLo));
-			if (universalBackground != sprite_id)
-			{
-				out = palleteLookup[sprite_id];
-				if (sprite_0_hit_possible && i == 0 && background != universalBackground)
-				{
-					status_reg.status.sprite_0_hit = 1;
-				}
-			}
+			uint8_t shiftOffset = (sprite_latch[i] & 0x40) > 0 ? -counter[i] : (counter[i] + 7 );
+			uint8_t patternLo = (sprite_shift_lo[i] >> shiftOffset) & 0x01;
+			uint8_t patternHi = (sprite_shift_hi[i] >> shiftOffset) & 0x01;
+			pixel_offset = (patternHi << 1) | patternLo;
+			pallete = sprite_latch[i] & 0x03;
 		}
 
 		counter[i]--;
 	}
+	out = ((uint16_t)pallete << 8) | (uint16_t)pixel_offset;
 	return out;
 }
 
@@ -727,10 +762,18 @@ void PPU::visibleScanline()
 	}
 
 	PixelColor color = { 0,0,0,255 };
-	uint8_t bg_color_index = 0;
+	uint8_t pixel_offset_bg = 0;
+	uint8_t pallete_bg = 0;
+	uint8_t pixel_offset_fg = 0;
+	uint8_t pallete_fg = 0;
 	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_bg)
 	{
 		uint8_t pixelId = (cycle - 1) % 8;
+
+		if (scanline == 0 && cycle == 1)
+		{
+			int x = 2;
+		}
 
 		if (pixelId == 0 && cycle > 1)
 		{
@@ -752,39 +795,39 @@ void PPU::visibleScanline()
 			break;
 			//  store attribute for next tiles in latch 
 		case 2:
+		{
 			attribute_latch = readByte(0x23C0 | (internal_addr.nametable << 10)
 				| ((internal_addr.coarse_y >> 2) << 3)
 				| (internal_addr.coarse_x >> 2));
+			if (internal_addr.coarse_y & 0x02) attribute_latch >>= 4;
+			if (internal_addr.coarse_x & 0x02) attribute_latch >>= 2;
+			attribute_latch &= 0x03;
+		}
 			break;
 		//  store lo patter on for next tile in latch 
 		case 4:
-			shifter_down_latch = readByte(pattern_base_addr +  nametable_latch * 16 + scanline%8);
+			shifter_down_latch = readByte(pattern_base_addr +  nametable_latch * 16 + internal_addr.fine_y);
 			break;
 		//  store hi patter on for next tile in latch 
 		case 6:
-			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + scanline % 8);
+			shifter_up_latch = readByte(pattern_base_addr + nametable_latch * 16 + 0x0008 + internal_addr.fine_y);
 			break;
 		case 7:
 			coarseXincrement();
 		}
 
-
-		uint8_t currentAtribute = attribute_reg & 0x00FF;
-		uint8_t y_atribute_tile = (uint8_t)floor(scanline / 16) % 2; // x coord of 2x2 tile within  4x4 tile
-		uint8_t x_atribute_tile = (uint8_t)floor((cycle - 1) / 16) % 2; // y coord of 2x2 tile within  4x4 tile
-
-		uint8_t pallete = (currentAtribute >> ((y_atribute_tile * 4 + x_atribute_tile *2))) & 0x03;
-
 		pixelId = 7 - pixelId; //linear map 0-7 to 7-0 because bit for pixel 0 in given tile is 7th bit in register
 		uint8_t patternLo = (shift_register_down >> pixelId) & 0x1;
 		uint8_t patternHi = (shift_register_up >> pixelId) & 0x1;
 
-		bg_color_index =  readByte(0x3F00  + pallete * 4 + ((patternHi << 1) | patternLo) );
-		color = palleteLookup[bg_color_index];
+		pixel_offset_bg = (patternHi << 1) | patternLo;
+		pallete_bg = attribute_reg & 0x03;
 	}
 	if (cycle >= 1 && cycle < 257 && mask_reg.flags.show_sprites)
 	{
-		color = renderSprites(bg_color_index, readByte(0x3F00));
+		uint16_t sprite_data = renderSprites();
+		pixel_offset_fg = sprite_data & 0x00FF;
+		pallete_fg = (sprite_data >> 8) & 0x00FF;
 	}
 
 	if (cycle == 256 && mask_reg.flags.show_bg)
@@ -796,8 +839,10 @@ void PPU::visibleScanline()
 		resetX();
 	}	
 
-	if(cycle >= 1 && cycle < 257)
-		drawTile(cycle - 1, scanline, 4, color.R, color.G, color.B, color.A);
+	if (cycle >= 1 && cycle < 257)
+	{
+		drawPixel(pixel_offset_bg, pallete_bg, pixel_offset_fg, pallete_fg);
+	}
 
 	spritePrefetch();
 	prefetch();

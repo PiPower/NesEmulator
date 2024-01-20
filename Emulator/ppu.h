@@ -33,6 +33,7 @@ public:
 	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
+	void drawPixel(uint8_t pixel_offset_bg, uint8_t pallete_bg, uint8_t pixel_offset_fg, uint8_t pallete_fg);
 	void loadSpriteShiftRegisters();
 	void clearOAM();
 	void coarseXincrement();
@@ -41,7 +42,7 @@ private:
 	void spritePrefetch();
 	void prefetch();
 	void resetX();
-	PixelColor renderSprites(uint8_t background, uint8_t universalBackground);
+	uint16_t renderSprites();
 	uint8_t readByte(uint16_t addr);
 	void writeByte(uint16_t addr, uint8_t);
 	void initRenderingResources(HWND hwnd);
