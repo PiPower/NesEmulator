@@ -33,7 +33,8 @@ public:
 	void RenderPatternTables(uint8_t i, UINT x_offset, UINT y_offset);
 	void RenderRawNametable(uint8_t i);
 private:
-	void drawPixel(uint8_t pixel_offset_bg, uint8_t pallete_bg, uint8_t pixel_offset_fg, uint8_t pallete_fg);
+	void drawPixel(uint8_t pixel_offset_bg, uint8_t pallete_bg, uint8_t pixel_offset_fg,
+		uint8_t pallete_fg, uint8_t priority, uint8_t sprite_index);
 	void loadSpriteShiftRegisters();
 	void clearOAM();
 	void coarseXincrement();
@@ -72,7 +73,6 @@ private:
 	uint8_t attribute_latch;
 	uint8_t prevoius_read_data;
 	uint8_t sprite_latch[8];// holds OAM attribute for sprite
-	uint8_t sprite_y_latch[8];
 	int counter[8]; // holds x for sprite
 	// internal data
 	uint8_t fine_x;
@@ -90,7 +90,7 @@ private:
 	uint8_t fetched_sprites;
 	uint8_t secondaryOAMsize;
 	uint8_t* OAMtable;
-	OAMentry* secondaryOAM;
+	OAMentry secondaryOAM[8];
 	uint8_t* nametableRAM;
 	uint8_t* palleteRAM;
 	PixelColor* palleteLookup;

@@ -5,7 +5,7 @@
 #include "WindowsGraphics/window.h"
 #include "Emulator/ppu.h"
 using namespace std;
-
+extern int lower_bound;
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nShowCmd)
 {
 	Window window(1280, 1024, L"test", L"NES emulator");
